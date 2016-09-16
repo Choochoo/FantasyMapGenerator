@@ -1,4 +1,4 @@
-﻿namespace WorldMap.Geom
+﻿namespace Delaunay
 {
     public struct Extent
     {
@@ -49,19 +49,19 @@
             }
         }
 
-        public Vector2f topLeft
+        public Vector2d topLeft
         {
             get
             {
-                return new Vector2f(left, top);
+                return new Vector2d(left, top);
             }
         }
 
-        public Vector2f bottomRight
+        public Vector2d bottomRight
         {
             get
             {
-                return new Vector2f(right, bottom);
+                return new Vector2d(right, bottom);
             }
         }
     }

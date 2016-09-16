@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using Voronoi2;
+﻿
+
+using D3Voronoi;
 using WorldMap.Layers.Interfaces;
 
 namespace WorldMap.Layers
 {
-    public class LayerOutline : IHasHeights, IHasMesh, IHasEdges
+    public class LayerOutline : IHasHeights, IHasMesh, IHasVoronoi
     {
         public static LayerOutline Instance
         {
@@ -20,8 +21,6 @@ namespace WorldMap.Layers
 
         private static LayerOutline _instance;
         private double[] _heights;
-        private Mesh _mesh;
-        private List<GraphEdge> _edges;
 
         public double[] Heights
         {
@@ -36,17 +35,8 @@ namespace WorldMap.Layers
             set { _heights = value; }
         }
 
-        public Mesh Mesh
-        {
-            get { return _mesh; }
-            set { _mesh = value; }
-        }
-
-        public List<GraphEdge> Edges
-        {
-            get { return _edges; }
-            set { _edges = value; }
-        }
+        public Mesh Mesh { get; set; }
+        public Voronoi VoronoiGenerator { get; set; }
     }
 
 }

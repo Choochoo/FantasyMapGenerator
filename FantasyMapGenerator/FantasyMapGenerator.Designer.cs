@@ -61,8 +61,8 @@
             this.cityAddNew = new System.Windows.Forms.Button();
             this.citiesGenerateRandomHeightmap = new System.Windows.Forms.Button();
             this.PlacingLabels = new System.Windows.Forms.TabPage();
-            this.paintPanel = new WorldMap.DrawPanel();
             this.genHighResolutionMap = new System.Windows.Forms.Button();
+            this.paintPanel = new WorldMap.DrawPanel();
             this.tabControl1.SuspendLayout();
             this.Grids.SuspendLayout();
             this.RoughOutlines.SuspendLayout();
@@ -518,14 +518,6 @@
             this.PlacingLabels.Text = "Placing Labels";
             this.PlacingLabels.UseVisualStyleBackColor = true;
             // 
-            // paintPanel
-            // 
-            this.paintPanel.BackColor = System.Drawing.Color.White;
-            this.paintPanel.Location = new System.Drawing.Point(12, 149);
-            this.paintPanel.Name = "paintPanel";
-            this.paintPanel.Size = new System.Drawing.Size(626, 626);
-            this.paintPanel.TabIndex = 0;
-            // 
             // genHighResolutionMap
             // 
             this.genHighResolutionMap.BackColor = System.Drawing.Color.White;
@@ -540,11 +532,20 @@
             this.genHighResolutionMap.UseVisualStyleBackColor = false;
             this.genHighResolutionMap.Click += new System.EventHandler(this.genHighResolutionMap_Click);
             // 
+            // paintPanel
+            // 
+            this.paintPanel.BackColor = System.Drawing.Color.White;
+            this.paintPanel.DrawQueue = null;
+            this.paintPanel.Location = new System.Drawing.Point(12, 149);
+            this.paintPanel.Name = "paintPanel";
+            this.paintPanel.Size = new System.Drawing.Size(700, 700);
+            this.paintPanel.TabIndex = 0;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(650, 820);
+            this.ClientSize = new System.Drawing.Size(721, 861);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.paintPanel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

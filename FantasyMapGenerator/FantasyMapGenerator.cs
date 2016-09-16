@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using WorldMap.Geom;
+using D3Voronoi;
 using WorldMap.Layers;
 
 namespace WorldMap
@@ -11,54 +12,66 @@ namespace WorldMap
         public Form1()
         {
             InitializeComponent();
-            Init();
-        }
-
-        private void Init()
-        {
         }
 
         private void generateRandomPoints_Click(object sender, EventArgs e)
         {
 
+            //LayerGrid.Instance.MeshPts = Terrain.GeneratePoints(10, Extent.DefaultExtent);
+
+            var l = new List<Point>()
+            {
+                new Point(-.33f,-.33f),
+                new Point(.33f,-.33f),
+                new Point(0,0),
+                new Point(-.33f,.33f),
+                new Point(.33f,.33f)
+            };
+            LayerGrid.Instance.MeshPts = l;
+            paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerGridGenerateRandomPoints };
         }
 
         private void improvePoints_Click(object sender, EventArgs e)
         {
-            /*
-            if (paintPanel.Sites == null)
-            {
-                paintPanel.CreateSites(256);
-                paintPanel.PrimH = new Voronoi(paintPanel.Sites, paintPanel.DefaultExtent);
-            }
-            else
-            {
-                if (paintPanel.PrimH == null)
-                    paintPanel.PrimH = new Voronoi(paintPanel.Sites, paintPanel.DefaultExtent);
+            var w = Extent.DefaultExtent.Width / 2d;
+            var h = Extent.DefaultExtent.Height / 2d;
 
-                paintPanel.PrimH = new Voronoi(paintPanel.PrimH.SiteCoords(), paintPanel.DefaultExtent, 1);
-            }
-            paintPanel.Sites = paintPanel.PrimH.SiteCoords();
-            paintPanel.DrawQueue = new int[] { (int)DrawPanel.Visualize.Points };
-            paintPanel.Invalidate();
+            //LayerGrid.Instance.MeshPts = Terrain.GeneratePoints(335, Extent.DefaultExtent);
+            //LayerGrid.Instance.Voronoi.Construct(LayerGrid.Instance.MeshPts, new Extent(-w, -h, w, h));
+            // LayerGrid.Instance.MeshPts = Terrain.ImprovePoints(LayerGrid.Instance, LayerGrid.Instance.MeshPts, Extent.DefaultExtent, 1);
+            paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerGridTesting };
+
+            /*
+            var w = Extent.DefaultExtent.width / 2d;
+            var h = Extent.DefaultExtent.height / 2d;
+
+            LayerGrid.Instance.MeshPts = Terrain.GeneratePoints(335, Extent.DefaultExtent);
+            LayerGrid.Instance.Voronoi.Construct(LayerGrid.Instance.MeshPts, new Extent(-w, -h, w, h));
+            //LayerGrid.Instance.MeshPts = Terrain.ImprovePoints(LayerGrid.Instance, LayerGrid.Instance.MeshPts, Extent.DefaultExtent, 1);
+            paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerGridTesting };
             */
         }
 
         private void showOriginalPoints_Click(object sender, EventArgs e)
         {
-            /*
+
             var originalText = "Show Original Points";
             if (((Button)sender).Text == originalText)
             {
                 ((Button)sender).Text = "Show Voronoi Corners";
-                paintPanel.DrawQueue = new int[] { (int)DrawPanel.Visualize.OriginalPoints };
+
+                paintPanel.DrawQueue = new int[] { (int)DrawPanel.Visualize.LayerGridGenerateRandomPoints };
             }
             else
             {
                 ((Button)sender).Text = originalText;
-                paintPanel.DrawQueue = new int[] { (int)DrawPanel.Visualize.VoronoiCorners };
+                if (LayerGrid.Instance.MeshVxs == null)
+                {
+                    LayerGrid.Instance.MeshVxs = Terrain.MakeMesh(LayerGrid.Instance.MeshPts, Extent.DefaultExtent).Vxs;
+                }
+                paintPanel.DrawQueue = new int[] { (int)DrawPanel.Visualize.LayerGridVoronoiCorners };
             }
-            */
+
         }
 
         private void reset_Click(object sender, EventArgs e)
@@ -175,7 +188,7 @@ namespace WorldMap
 
         private void renderingGenerateRandomHeightmap_Click(object sender, EventArgs e)
         {
-            LayerRendering.Instance.Heights = Terrain.GenerateCoast(paintPanel.Voronoi, LayerRendering.Instance, 4096, Extent.DefaultExtent);
+            LayerRendering.Instance.Heights = Terrain.GenerateCoast(LayerRendering.Instance, 4096, Extent.DefaultExtent);
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerRenderingGenerateRandomHeightmap };
         }
         private void renderingShowCoastline_Click(object sender, EventArgs e)
@@ -196,7 +209,7 @@ namespace WorldMap
         }
         private void citiesGenerateRandomHeightmap_Click(object sender, EventArgs e)
         {
-            LayerCities.Instance.CityRender = Terrain.NewCityRender(paintPanel.Voronoi, LayerCities.Instance, Extent.DefaultExtent);
+            LayerCities.Instance.CityRender = Terrain.NewCityRender(LayerCities.Instance, Extent.DefaultExtent);
             CityDraw();
         }
         private void cityAddNew_Click(object sender, EventArgs e)
@@ -240,7 +253,7 @@ namespace WorldMap
         {
             var instance = LayerLabels.Instance;
             var cityRender = instance.CityRender = new CityRender();
-            instance.Heights = Terrain.GenerateCoast(paintPanel.Voronoi, instance, 4096, Extent.DefaultExtent);
+            instance.Heights = Terrain.GenerateCoast(instance, 4096, Extent.DefaultExtent);
 
             Terrain.PlaceCities(instance);
 

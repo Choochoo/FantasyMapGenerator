@@ -1,8 +1,9 @@
-﻿using WorldMap.Layers.Interfaces;
+﻿using D3Voronoi;
+using WorldMap.Layers.Interfaces;
 
 namespace WorldMap.Layers
 {
-    public class LayerRendering : IHasHeights, IHasMesh, IHasDownhill
+    public class LayerRendering : IHasHeights, IHasMesh, IHasDownhill, IHasVoronoi
     {
         public static LayerRendering Instance
         {
@@ -40,6 +41,7 @@ namespace WorldMap.Layers
         }
 
         public int[] Downhill { get; set; }
+        public Voronoi VoronoiGenerator { get; set; }
     }
 
 }

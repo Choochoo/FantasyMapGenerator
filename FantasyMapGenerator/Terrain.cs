@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using D3Voronoi;
 using MathNet.Numerics.Statistics;
-using Voronoi2;
-using WorldMap.Geom;
 using WorldMap.Layers.Interfaces;
 
 namespace WorldMap
 {
-
-
     public class CityProperty
     {
         public double Score;
@@ -43,36 +40,37 @@ namespace WorldMap
             }
             set { _areaProperties = value; }
         }
-        //public double[] Heights;
         public double[] Score;
-        public double[] Territories;//has to be double for voronoi render
+        public double[] Territories;
         public List<int> Cities = new List<int>();
 
-        // public Mesh HeightMesh;
-        // public Mesh TerritoryMesh;
-
-        public List<List<Vector2f>> Rivers;
-        public List<List<Vector2f>> Coasts;
-        public List<List<Vector2f>> Borders;
+        public List<List<Point>> Rivers;
+        public List<List<Point>> Coasts;
+        public List<List<Point>> Borders;
     }
 
     public class Mesh
     {
-        public List<Vector2f> Pts;
-        public List<Vector2f> Vxs;
+        public List<Point> Pts;
+        public List<Point> Vxs;
         public Dictionary<string, int> Vxids;
         public Dictionary<int, List<int>> Adj;
         public List<MapEdge> Edges;
-        public Dictionary<int, List<Vector2f>> Tris;
+        public Dictionary<int, List<Point>> Tris;
         public Extent Extent;
+    }
+
+    public class Polygon
+    {
+        public List<Point> Points = new List<Point>();
     }
 
     public class MapEdge
     {
         public int Spot1;
         public int Spot2;
-        public Vector2f Left;
-        public Vector2f Right;
+        public Point Left;
+        public Point Right;
     }
 
 
@@ -82,8 +80,7 @@ namespace WorldMap
 
         public static double Runif(double lo, double hi)
         {
-            var randomdouble = 0.3423424234f; //random.Nextdouble();
-            return lo + randomdouble * (hi - lo);
+            return lo + random.NextDouble() * (hi - lo);
         }
 
         public static void RNorm(out double x1, out double x2)
@@ -95,42 +92,42 @@ namespace WorldMap
             {
                 x1 = Runif(-1f, 1f);
                 x2 = Runif(-1f, 1f);
-                w = (double)(x1 * x1 + x2 * x2);
+                w = x1 * x1 + x2 * x2;
             }
             w = Math.Sqrt(-2f * Math.Log(w) / w);
-            x2 *= (double)w;
-            x1 *= (double)w;
+            x2 *= w;
+            x1 *= w;
         }
 
-        public static List<Vector2f> GeneratePoints(int n, Extent extent)
+        public static List<Point> GeneratePoints(int n, Extent extent)
         {
-            var pts = new List<Vector2f>();
+            var pts = new List<Point>();
             for (var i = 0; i < n; i++)
             {
-                var x = (double)random.NextDouble() * extent.width;
-                var y = (double)random.NextDouble() * extent.height;
-                pts.Add(new Vector2f(x, y));
+                var x = (random.NextDouble() - 0.5) * extent.Width;
+                var y = (random.NextDouble() - 0.5) * extent.Height;
+                pts.Add(new Point(x, y));
             }
             return pts;
         }
 
-        public static Mesh GenerateGoodMesh(Voronoi voronoi, int n, Extent extent)
+        public static Mesh GenerateGoodMesh(IHasVoronoi instance, int n, Extent extent)
         {
-            var pts = GenerateGoodPoints(voronoi, n, extent);
-            return MakeMesh(voronoi, pts, extent);
+            var pts = GenerateGoodPoints(instance, n, extent);
+            return MakeMesh(pts, extent);
         }
 
-        private static List<Vector2f> GenerateGoodPoints(Voronoi voronoi, int n, Extent extent)
+        private static List<Point> GenerateGoodPoints(IHasVoronoi instance, int n, Extent extent)
         {
-
             var pts = GeneratePoints(n, extent);
-            pts = pts.OrderBy(point => point.x).ToList();
-            return ImprovePoints(pts, extent);
+            pts = pts.OrderBy(point => point.X).ToList();
+            return pts;
+            //return ImprovePoints(instance, pts, extent, 1);
         }
 
-        public static double[] GenerateCoast<T>(Voronoi voronoi, T instance, int npts, Extent extent) where T : IHasDownhill, IHasMesh
+        public static double[] GenerateCoast<T>(T instance, int npts, Extent extent) where T : IHasDownhill, IHasMesh, IHasVoronoi
         {
-            instance.Mesh = Terrain.GenerateGoodMesh(voronoi, npts, extent);
+            instance.Mesh = Terrain.GenerateGoodMesh(instance, npts, extent);
             var h = Terrain.Add(instance.Mesh.Vxs.Count,
                 Terrain.Slope(instance.Mesh, Terrain.RandomVector(4)),
                 Terrain.Cone(instance.Mesh, Terrain.Runif(-1, -1)),
@@ -147,35 +144,91 @@ namespace WorldMap
             h = Terrain.CleanCoast(instance.Mesh, h, 3);
             return h;
         }
+        /*
 
-        private static List<Vector2f> ImprovePoints(List<Vector2f> pts, Extent extent, int n = 1)
+        private static Point Centroid(Point site, int siteIndex, VoronoiGraph graph)
         {
-            /*
+            var x = 0d;
+            var y = 0d;
+            var edge = graph.Edges.ElementAt(siteIndex);
+            var startEdge = edge.ID;
+            var count = 0;
+            while (startEdge != edge.ID || count == 0)
+            {
+                if (edge.Vertex == -1 || graph.Edges[edge.Opposite].Vertex == -1)
+                    continue;
+
+                var vert1 = graph.Vertices[edge.Vertex].Position;
+                //var vert2 = graph.Vertices[graph.Edges[edge.Opposite].Vertex].Position;
+                x += vert1.X;
+                y += vert1.Y;
+                edge = graph.Edges.ElementAt(edge.Next);
+                count++;
+            }
+            var newSite = new Point(x / count, y / count);
+            return newSite;
+        }
+
+
+        public static List<Point> ImprovePoints(IHasVoronoi instance, List<Point> sites, Extent extent, int n = 1)
+        {
+            var w = extent.width / 2d;
+            var h = extent.height / 2d;
+            var rect = new Extent(-w, -h, w, h);
+            sites.ForEach(s => Debug.Write(s + ","));
             for (var i = 0; i < n; i++)
             {
-                pts = Voronoi(pts, extent)
-                    .polygons(pts)
-                    .map(centroid);
-            }*/
-            return pts;
+                var newSites = new List<Point>();
+                // Compute the voronoi graph
+                instance.Graph = instance.Voronoi.CreateVoronoi(sites.ToArray());
+                //cap infinite edges.
+                instance.Graph.Complete(20000f);
+                for (int j = 0; j < sites.Count; j++)
+                {
+                    var newSite = Terrain.Centroid(sites[j], j, instance.Graph);
+                    newSites.Add(newSite);
+                }
+                sites = newSites;
+                
+            }
+            Debug.WriteLine("space");
+            sites.ForEach(s => Debug.Write(s + ","));
+            return sites;
         }
 
-        private static void Voronoi(List<Vector2f> pts, Extent extent)
+
+        /*
+        private static List<Polygon> GetPolygons(List<GraphEdge> edges)
         {
-            /*
-            var w = extent.width / 2f;
-            var h = extent.height / 2f;
-            return d3.voronoi()
-                .extent([
+            var site1 = edges.Select(e => e.site1);
+            var site2 = edges.Select(e => e.site2);
+            var allSites = new List<int>(site1);
+            allSites.AddRange(site2);
+            allSites = allSites.Distinct().ToList();
 
+            var polgyons = new List<Polygon>();
+            foreach (var site in allSites)
+            {
+                var currentEdges = edges.Where(e => e.site1 == site || e.site2 == site).ToList();
+                var vectors = currentEdges.Select(e => new Point(e.Position.X1, e.Position.Y1)).ToList();
+                vectors.AddRange(currentEdges.Select(e => new Point(e.Position.X2, e.Position.Y2)).ToList());
+                polgyons.Add(new Polygon()
+                {
+                    Points = vectors.Distinct().ToList()
+                });
+            }
 
-                    [-w, -h],
-
-            [w, h]
-		])(pts);*/
+            return polgyons;
         }
-
-
+        
+        private static List<Vertex> VoronoiRange(IHasVoronoi instance, List<Point> pts, Extent extent)
+        {
+            var w = extent.width / 2d;
+            var h = extent.height / 2d;
+            instance.Voronoi.Construct(pts, new Extent(-w, -h, w, h));
+            return instance.Voronoi.Vertices;
+        }
+        
         public static List<GraphEdge> ParseEdges(string edges)
         {
             var delimiter = "{";
@@ -195,67 +248,69 @@ namespace WorldMap
                 var left = anotherSplit[5];
                 var newEdge = new GraphEdge()
                 {
-                    Site1 = new Vector2f(Convert.ToDouble(zero.Split(',')[0]), Convert.ToDouble(zero.Split(',')[1])),
-                    Site2 = new Vector2f(Convert.ToDouble(one.Split(',')[0]), Convert.ToDouble(one.Split(',')[1])),
-                    Left = new Vector2f(Convert.ToDouble(left.Split(',')[0]), Convert.ToDouble(left.Split(',')[1]))
+                    Site1 = new Point(Convert.ToDouble(zero.Split(',')[0]), Convert.ToDouble(zero.Split(',')[1])),
+                    Site2 = new Point(Convert.ToDouble(one.Split(',')[0]), Convert.ToDouble(one.Split(',')[1])),
+                    Left = new Point(Convert.ToDouble(left.Split(',')[0]), Convert.ToDouble(left.Split(',')[1]))
                 };
                 if (anotherSplit.Length > 7)
                 {
                     var right = anotherSplit[7];
-                    newEdge.Right = new Vector2f(Convert.ToDouble(right.Split(',')[0]),
+                    newEdge.Right = new Point(Convert.ToDouble(right.Split(',')[0]),
                         Convert.ToDouble(right.Split(',')[1]));
                 }
                 outputEdges.Add(newEdge);
             }
             return outputEdges;
         }
+        */
 
-
-        public static Mesh MakeMesh(Voronoi voronoi, List<Vector2f> pts, Extent extent)
+        public static Diagram Voronoi(Voronoi vorInstance, List<Point> pts, Extent extent)
         {
-            var primEdges = ParseEdges(StringValues.EdgesString);
-            var vxs = new List<Vector2f>();
-            var vxids = new Dictionary<Vector2f, int>();
+            extent = extent == null ? Extent.DefaultExtent : extent;
+            var w = extent.Width / 2d;
+            var h = extent.Height / 2d;
+            return vorInstance.VoronoiDiagram(pts.Select(p => new Point(p.X, p.Y)).ToList(), new Extent(-w, -h, w, h));
+        }
+
+        public static Mesh MakeMesh(List<Point> pts, Extent extent)
+        {
+            var vorInstance = new Voronoi();
+            var vor = Voronoi(vorInstance, pts, extent);
+            var vxs = new List<Point>();
+            var vxids = new Dictionary<string, int>();
             var adj = new Dictionary<int, List<int>>();
             var edges = new List<MapEdge>();
-            var tris = new Dictionary<int, List<Vector2f>>();
 
-            //var variance = 5.5f;
-            foreach (var e in primEdges)
+            var tris = new Dictionary<int, List<Point>>();
+            var counter = 0;
+            foreach (var e in vor.Edges)
             {
-                //if (e == null || e.x1 == 0 || e.y1 == 0 || e.x2 == 0 || e.y2 == 0) continue;
-                //if (Equals4DigitPrecision((double)e.x1, (double)e.x2) && Equals4DigitPrecision((double)e.y1, (double)e.y2)) continue;
-
-                //if (e.LeftSite.x < variance || e.RightSite.x < variance || e.LeftSite.y < variance || e.RightSite.y < variance)
-                //  continue;
-                //if (e.LeftSite.x > extent.width - variance || e.RightSite.x > extent.width - variance || e.LeftSite.y > extent.height - variance || e.RightSite.y > extent.height - variance)
-                //  continue;
                 if (e == null)
                     continue;
 
                 int e0 = 0;
-                var foundE0 = vxids.TryGetValue(e.Site1, out e0);
+                var foundE0 = vxids.TryGetValue(e.Points[0].ToString(), out e0);
                 if (!foundE0)
                 {
                     e0 = vxs.Count;
-                    vxids.Add(e.Site1, e0);
-                    vxs.Add(e.Site1);
+                    vxids.Add(e.Points[0].ToString(), e0);
+                    vxs.Add(e.Points[0]);
                 }
-                List<Vector2f> firstTri = null;
+                List<Point> firstTri = null;
                 bool foundFirst = tris.TryGetValue(e0, out firstTri);
                 if (!foundFirst)
                 {
-                    firstTri = new List<Vector2f>();
+                    firstTri = new List<Point>();
                     tris.Add(e0, firstTri);
                 }
 
                 int e1 = 0;
-                var foundE1 = vxids.TryGetValue(e.Site2, out e1);
+                var foundE1 = vxids.TryGetValue(e.Points[1].ToString(), out e1);
                 if (!foundE1)
                 {
                     e1 = vxs.Count;
-                    vxids.Add(e.Site2, e1);
-                    vxs.Add(e.Site2);
+                    vxids.Add(e.Points[1].ToString(), e1);
+                    vxs.Add(e.Points[1]);
                 }
 
                 List<int> adj0 = null;
@@ -279,30 +334,30 @@ namespace WorldMap
                 adj[e1] = adj1;
 
 
-                if (!firstTri.Contains(e.Left))
+                if (!firstTri.Any(t => t.X == e.Left.X && t.Y == e.Left.Y))
                 {
                     firstTri.Add(e.Left);
                     tris[e0] = firstTri;
                 }
-                if (e.Right != null && e.Right.x != 0 && e.Right.y != 0 && !firstTri.Contains(e.Right))
+                if (e.Right != null && !firstTri.Any(t => t.X == e.Right.X && t.Y == e.Right.Y))
                 {
                     firstTri.Add(e.Right);
                     tris[e0] = firstTri;
                 }
 
-                List<Vector2f> secondTri = null;
+                List<Point> secondTri = null;
                 var foundSecond = tris.TryGetValue(e1, out secondTri);
                 if (!foundSecond)
                 {
-                    secondTri = new List<Vector2f>();
+                    secondTri = new List<Point>();
                     tris.Add(e1, secondTri);
                 }
-                if (!secondTri.Contains(e.Left))
+                if (!secondTri.Any(t => t.X == e.Left.X && t.Y == e.Left.Y))
                 {
                     secondTri.Add(e.Left);
                     tris[e1] = secondTri;
                 }
-                if (e.Right != null && e.Right.x != 0 && e.Right.y != 0 && !secondTri.Contains(e.Right))
+                if (e.Right != null && !secondTri.Any(t => t.X == e.Right.X && t.Y == e.Right.Y))
                 {
                     secondTri.Add(e.Right);
                     tris[e1] = secondTri;
@@ -314,6 +369,7 @@ namespace WorldMap
                     Left = e.Left,
                     Right = e.Right
                 });
+                counter++;
             }
             var mesh = new Mesh()
             {
@@ -327,7 +383,6 @@ namespace WorldMap
 
 
             return mesh;
-
         }
 
         public static double[] Add(int count, params double[][] values)
@@ -345,12 +400,12 @@ namespace WorldMap
 
         public static double[] Mountains(Mesh mesh, int n, double r = 0.05f)
         {
-            var mounts = new List<Vector2f>();
+            var mounts = new List<Point>();
             var randOne = .3f; //Math.random();
             var randTwo = .5f; //Math.random();
             for (var i = 0; i < n; i++)
             {
-                mounts.Add(new Vector2f(mesh.Extent.width * (randOne - 0.5f), mesh.Extent.height * (randTwo - 0.5f)));
+                mounts.Add(new Point(mesh.Extent.Width * (randOne - 0.5f), mesh.Extent.Height * (randTwo - 0.5f)));
             }
             var newvals = new double[mesh.Vxs.Count];
             for (var i = 0; i < mesh.Vxs.Count; i++)
@@ -361,19 +416,19 @@ namespace WorldMap
                     var m = mounts[j];
                     newvals[i] +=
                         (double)
-                            Math.Pow(Math.Exp((double)(-((p.x - m.x) * (p.x - m.x) + (p.y - m.y) * (p.y - m.y)) / (2 * r * r))),
+                            Math.Pow(Math.Exp((double)(-((p.X - m.X) * (p.X - m.X) + (p.Y - m.Y) * (p.Y - m.Y)) / (2 * r * r))),
                                 2);
                 }
             }
             return newvals;
         }
 
-        public static double[] Slope(Mesh mesh, Vector2f direction)
+        public static double[] Slope(Mesh mesh, Point direction)
         {
             var output = new List<double>();
             foreach (var f in mesh.Vxs)
             {
-                output.Add(f.x * direction.x + f.y * direction.y);
+                output.Add(f.X * direction.X + f.Y * direction.Y);
             }
             return output.ToArray();
         }
@@ -383,7 +438,7 @@ namespace WorldMap
             var output = new List<double>();
             foreach (var f in mesh.Vxs)
             {
-                output.Add((double)Math.Pow((double)(f.x * f.x + f.y * f.y), 0.5) * slope);
+                output.Add((double)Math.Pow((double)(f.X * f.X + f.Y * f.Y), 0.5) * slope);
             }
             return output.ToArray();
         }
@@ -443,25 +498,25 @@ namespace WorldMap
             return nbs;
         }
 
-        public static Vector2f RandomVector(int scale)
+        public static Point RandomVector(int scale)
         {
             var xOut = 0.03661885595999543f;
             var yOut = -0.9259299039132616f;
             //RNorm(out xOut, out yOut);
             Debug.WriteLine($"x:{xOut} y:{yOut}");
-            return new Vector2f(scale * xOut, scale * yOut);
+            return new Point(scale * xOut, scale * yOut);
         }
 
         public static double[] Randomdoubles(int scale)
         {
             var vector = RandomVector(scale);
-            return new[] { (double)vector.x, (double)vector.y };
+            return new[] { (double)vector.X, (double)vector.Y };
         }
 
 
-        public static List<List<Vector2f>> Contour<T>(T instance, int level = 0) where T : IHasMesh, IHasHeights
+        public static List<List<Point>> Contour<T>(T instance, int level = 0) where T : IHasMesh, IHasHeights
         {
-            var edges = new List<Vector2f[]>();
+            var edges = new List<Point[]>();
             for (var i = 0; i < instance.Mesh.Edges.Count; i++)
             {
                 var e = instance.Mesh.Edges[i];
@@ -477,32 +532,32 @@ namespace WorldMap
 
         public static bool IsNearEdge(Mesh mesh, int i)
         {
-            var x = mesh.Vxs[i].x;
-            var y = mesh.Vxs[i].y;
-            var w = mesh.Extent.width;
-            var h = mesh.Extent.height;
+            var x = mesh.Vxs[i].X;
+            var y = mesh.Vxs[i].Y;
+            var w = mesh.Extent.Width;
+            var h = mesh.Extent.Height;
             return x < -0.45f * w || x > 0.45f * w || y < -0.45f * h || y > 0.45f * h;
         }
 
-        public static List<List<Vector2f>> MergeSegments(List<Vector2f[]> segs)
+        public static List<List<Point>> MergeSegments(List<Point[]> segs)
         {
-            var adj = new Dictionary<Vector2f, List<Vector2f>>();
+            var adj = new Dictionary<Point, List<Point>>();
             for (var i = 0; i < segs.Count; i++)
             {
                 var seg = segs[i];
-                List<Vector2f> a0 = null;
+                List<Point> a0 = null;
                 var foundA0 = adj.TryGetValue(seg[0], out a0);
                 if (!foundA0)
                 {
-                    a0 = new List<Vector2f>();
+                    a0 = new List<Point>();
                     adj[seg[0]] = a0;
                 }
 
-                List<Vector2f> a1 = null;
+                List<Point> a1 = null;
                 var foundA1 = adj.TryGetValue(seg[0], out a1);
                 if (!foundA1)
                 {
-                    a1 = new List<Vector2f>();
+                    a1 = new List<Point>();
                     adj[seg[1]] = a1;
                 }
                 a0.Add(seg[1]);
@@ -511,8 +566,8 @@ namespace WorldMap
                 adj[seg[1]] = a1;
             }
             var done = new bool[segs.Count];
-            var paths = new List<List<Vector2f>>();
-            List<Vector2f> path = null;
+            var paths = new List<List<Point>>();
+            List<Point> path = null;
             while (true)
             {
                 if (path == null)
@@ -521,7 +576,7 @@ namespace WorldMap
                     {
                         if (done[i]) continue;
                         done[i] = true;
-                        path = new List<Vector2f> { segs[i].ElementAt(0), segs[i].ElementAt(1) };
+                        path = new List<Point> { segs[i].ElementAt(0), segs[i].ElementAt(1) };
                         break;
                     }
                     if (path == null) break;
@@ -691,28 +746,28 @@ namespace WorldMap
             for (var i = 0; i < h.Length; i++)
             {
                 var s = Terrain.Trislope(mesh, h, i);
-                output[i] = (double)Math.Sqrt((double)(s.x * s.x + s.y * s.y));
+                output[i] = (double)Math.Sqrt((double)(s.X * s.X + s.Y * s.Y));
             }
             return output;
         }
-        public static Vector2f Trislope(Mesh mesh, double[] h, int i)
+        public static Point Trislope(Mesh mesh, double[] h, int i)
         {
             var nbs = Terrain.Neighbours(mesh, i);
-            if (nbs.Count != 3) return Vector2f.zero;
+            if (nbs.Count != 3) return Point.Zero;
             var p0 = mesh.Vxs[nbs[0]];
             var p1 = mesh.Vxs[nbs[1]];
             var p2 = mesh.Vxs[nbs[2]];
 
-            var x1 = p1.x - p0.x;
-            var x2 = p2.x - p0.x;
-            var y1 = p1.y - p0.y;
-            var y2 = p2.y - p0.y;
+            var x1 = p1.X - p0.X;
+            var x2 = p2.X - p0.X;
+            var y1 = p1.Y - p0.Y;
+            var y2 = p2.Y - p0.Y;
 
             var det = x1 * y2 - x2 * y1;
             var h1 = h[nbs[1]] - h[nbs[0]];
             var h2 = h[nbs[2]] - h[nbs[0]];
 
-            return new Vector2f((y2 * h1 - y1 * h2) / det, (-x2 * h1 + x1 * h2) / det);
+            return new Point((y2 * h1 - y1 * h2) / det, (-x2 * h1 + x1 * h2) / det);
         }
 
         private static int[] Downhill(Mesh mesh, IHasDownhill downhillInstance, double[] h)
@@ -799,18 +854,16 @@ namespace WorldMap
                     }
                     if (count > 1) continue;
                     newh[i] = best / 2f;
-                    //changed++;
                 }
                 h = newh;
             }
             return h;
         }
-
-        public static List<List<Vector2f>> GetRivers<T>(T instance, double limit) where T : IHasMesh, IHasDownhill, IHasHeights
+        public static List<List<Point>> GetRivers<T>(T instance, double limit) where T : IHasMesh, IHasDownhill, IHasHeights
         {
             var dh = Terrain.Downhill(instance.Mesh, instance, instance.Heights);
             var flux = Terrain.GetFlux(instance.Mesh, instance, instance.Heights);
-            var links = new List<Vector2f[]>();
+            var links = new List<Point[]>();
             var above = 0;
             var h = instance.Heights;
             var mesh = instance.Mesh;
@@ -832,46 +885,41 @@ namespace WorldMap
                     }
                     else
                     {
-                        var downV = new Vector2f((up.x + down.x) / 2d, (up.y + down.y) / 2d);
+                        var downV = new Point((up.X + down.X) / 2d, (up.Y + down.Y) / 2d);
                         links.Add(new[] { up, downV });
                     }
                 }
             }
 
-            var output = new List<List<Vector2f>>();
+            var output = new List<List<Point>>();
             var mergedSegments = MergeSegments(links);
             foreach (var segment in mergedSegments)
                 output.Add(RelaxPath(segment));
 
             return output;
         }
-
-        private static List<Vector2f> RelaxPath(List<Vector2f> path)
+        private static List<Point> RelaxPath(List<Point> path)
         {
-            var newpath = new List<Vector2f>() { path[0] };
+            var newpath = new List<Point>() { path[0] };
             for (var i = 1; i < path.Count - 1; i++)
             {
-                var newpt = new Vector2f(0.25f * path[i - 1].x + 0.5f * path[i].x + 0.25f * path[i + 1].x,
-                    0.25f * path[i - 1].y + 0.5f * path[i].y + 0.25f * path[i + 1].y);
+                var newpt = new Point(0.25f * path[i - 1].X + 0.5f * path[i].X + 0.25f * path[i + 1].X,
+                    0.25f * path[i - 1].Y + 0.5f * path[i].Y + 0.25f * path[i + 1].Y);
 
                 newpath.Add(newpt);
             }
             newpath.Add(path[path.Count - 1]);
             return newpath;
         }
-
-        public static CityRender NewCityRender<T>(Voronoi voronoi, T instance, Extent extent) where T : IHasDownhill, IHasMesh, IHasHeights
+        public static CityRender NewCityRender<T>(T instance, Extent extent) where T : IHasDownhill, IHasMesh, IHasHeights, IHasVoronoi
         {
-            instance.Heights = instance.Heights != null ? instance.Heights : GenerateCoast(voronoi, instance, 4096, extent);
+            instance.Heights = instance.Heights != null ? instance.Heights : GenerateCoast(instance, 4096, extent);
             return new CityRender()
             {
-                //Heights = instance.Heights,
                 AreaProperties = new AreaProperties(),
                 Cities = new List<int>()
             };
         }
-
-
         public static double[] CityScore<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
         {
             var h = instance.Heights;
@@ -888,8 +936,8 @@ namespace WorldMap
                     score[i] = -double.MaxValue;
                     continue;
                 }
-                score[i] += 0.01d / (1e-9d + Math.Abs(mesh.Vxs[i].x) - mesh.Extent.width / 2d);
-                score[i] += 0.01d / (1e-9d + Math.Abs(mesh.Vxs[i].y) - mesh.Extent.height / 2d);
+                score[i] += 0.01d / (1e-9d + Math.Abs(mesh.Vxs[i].X) - mesh.Extent.Width / 2d);
+                score[i] += 0.01d / (1e-9d + Math.Abs(mesh.Vxs[i].Y) - mesh.Extent.Height / 2d);
 
 
                 for (var j = 0; j < cities.Count; j++)
@@ -899,20 +947,19 @@ namespace WorldMap
             }
             return score.ToArray();
         }
-
         private static double Distance(Mesh mesh, int i, int j)
         {
             var p = mesh.Vxs[i];
             var q = mesh.Vxs[j];
-            return (double)Math.Sqrt((double)((p.x - q.x) * (p.x - q.x) + (p.y - q.y) * (p.y - q.y)));
+            return (double)Math.Sqrt((double)((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y)));
         }
-        public static int Penalty(PossibleLabelLocation label, Mesh mesh, List<PossibleLabelLocation> citylabels, List<int> cities, List<List<Vector2f>>[] avoids)
+        public static int Penalty(PossibleLabelLocation label, Mesh mesh, List<PossibleLabelLocation> citylabels, List<int> cities, List<List<Point>>[] avoids)
         {
             var pen = 0;
-            if (label.X0 < -0.45d * mesh.Extent.width) pen += 100;
-            if (label.X1 > 0.45d * mesh.Extent.width) pen += 100;
-            if (label.Y0 < -0.45d * mesh.Extent.height) pen += 100;
-            if (label.Y1 > 0.45d * mesh.Extent.height) pen += 100;
+            if (label.X0 < -0.45d * mesh.Extent.Width) pen += 100;
+            if (label.X1 > 0.45d * mesh.Extent.Width) pen += 100;
+            if (label.Y0 < -0.45d * mesh.Extent.Height) pen += 100;
+            if (label.Y1 > 0.45d * mesh.Extent.Height) pen += 100;
             for (var i = 0; i < citylabels.Count; i++)
             {
                 var olabel = citylabels[i];
@@ -926,7 +973,7 @@ namespace WorldMap
             for (var i = 0; i < cities.Count; i++)
             {
                 var c = mesh.Vxs[cities[i]];
-                if (label.X0 < c.x && label.X1 > c.x && label.Y0 < c.y && label.Y1 > c.y)
+                if (label.X0 < c.X && label.X1 > c.X && label.Y0 < c.Y && label.Y1 > c.Y)
                 {
                     pen += 100;
                 }
@@ -940,7 +987,7 @@ namespace WorldMap
                     for (var k = 0; k < avpath.Count; k++)
                     {
                         var pt = avpath[k];
-                        if (pt.x > label.X0 && pt.x < label.X1 && pt.y > label.Y0 && pt.y < label.Y1)
+                        if (pt.X > label.X0 && pt.X < label.X1 && pt.Y > label.Y0 && pt.Y < label.Y1)
                         {
                             pen++;
                         }
@@ -949,8 +996,7 @@ namespace WorldMap
             }
             return pen;
         }
-
-        public static Vector2f TerrCenter(Mesh mesh, double[] h, double[] terr, int city, bool landOnly)
+        public static Point TerrCenter(Mesh mesh, double[] h, double[] terr, int city, bool landOnly)
         {
             var x = 0d;
             var y = 0d;
@@ -959,20 +1005,19 @@ namespace WorldMap
             {
                 if (terr[i] != city) continue;
                 if (landOnly && h[i] <= 0) continue;
-                x += mesh.Vxs[i].x;
-                y += mesh.Vxs[i].y;
+                x += mesh.Vxs[i].X;
+                y += mesh.Vxs[i].Y;
                 n++;
             }
-            return new Vector2f(x / n, y / n);
+            return new Point(x / n, y / n);
         }
-
-        public static List<List<Vector2f>> GetBorders<T>(T instance) where T : IHasMesh, IHasCityRender, IHasHeights
+        public static List<List<Point>> GetBorders<T>(T instance) where T : IHasMesh, IHasCityRender, IHasHeights
         {
             var cityRender = instance.CityRender;
             var mesh = instance.Mesh;
             var terr = cityRender.Territories;
             var h = instance.Heights;
-            var edges = new List<Vector2f[]>();
+            var edges = new List<Point[]>();
             for (var i = 0; i < mesh.Edges.Count; i++)
             {
                 var e = mesh.Edges[i];
@@ -981,18 +1026,17 @@ namespace WorldMap
                 if (h[e.Spot1] < 0 || h[e.Spot2] < 0) continue;
                 if (terr[e.Spot1] != terr[e.Spot2])
                 {
-                    edges.Add(new Vector2f[] { e.Left, e.Right });
+                    edges.Add(new Point[] { e.Left, e.Right });
                 }
             }
 
-            var output = new List<List<Vector2f>>();
+            var output = new List<List<Point>>();
             var mergedSegments = MergeSegments(edges);
             foreach (var segment in mergedSegments)
                 output.Add(RelaxPath(segment));
 
             return output;
         }
-
         public static double[] GetTerritories<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
         {
             var cityRender = instance.CityRender;
@@ -1041,7 +1085,6 @@ namespace WorldMap
             }
             return territories;
         }
-
         private static double Weight(Mesh mesh, double[] h, double[] flux, int u, int v)
         {
             var horiz = Terrain.Distance(mesh, u, v);
@@ -1053,7 +1096,6 @@ namespace WorldMap
             if ((h[u] > 0) != (h[v] > 0)) return 1000f;
             return horiz * diff;
         }
-
         public static void PlaceCity<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
         {
             var score = Terrain.CityScore(instance);
@@ -1069,7 +1111,6 @@ namespace WorldMap
             }
             instance.CityRender.Cities.Add(newcity);
         }
-
         public static void PlaceCities<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
         {
             var n = instance.CityRender.AreaProperties.NumberOfCities;

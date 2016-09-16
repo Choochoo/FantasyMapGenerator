@@ -1,0 +1,8 @@
+C:\GitHub\Delaunay\Delaunay\bin\Release\Delaunay.dll
+C:\GitHub\Delaunay\Delaunay\bin\Release\Delaunay.pdb
+C:\GitHub\Delaunay\Delaunay\obj\Release\Delaunay.dll
+C:\GitHub\Delaunay\Delaunay\obj\Release\Delaunay.pdb
+C:\Users\Jared\Desktop\Delaunay-master\Delaunay\bin\Release\Delaunay.dll
+C:\Users\Jared\Desktop\Delaunay-master\Delaunay\bin\Release\Delaunay.pdb
+C:\Users\Jared\Desktop\Delaunay-master\Delaunay\obj\Release\Delaunay.dll
+C:\Users\Jared\Desktop\Delaunay-master\Delaunay\obj\Release\Delaunay.pdb

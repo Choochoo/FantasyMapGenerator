@@ -1,10 +1,9 @@
-﻿using Voronoi2;
-using WorldMap.Geom;
+﻿using D3Voronoi;
 using WorldMap.Layers.Interfaces;
 
 namespace WorldMap.Layers
 {
-    public class LayerErosion : IHasHeights, IHasMesh, IHasDownhill
+    public class LayerErosion : IHasHeights, IHasMesh, IHasDownhill, IHasVoronoi
     {
         private static LayerErosion _instance;
         private double[] _heights;
@@ -20,7 +19,7 @@ namespace WorldMap.Layers
         }
 
         public int[] Downhill { get; set; }
-
+        public Voronoi VoronoiGenerator { get; set; }
         public double[] Heights
         {
             get
@@ -36,7 +35,7 @@ namespace WorldMap.Layers
 
         public static void GenerateUneroded()
         {
-            Instance.Mesh = Terrain.GenerateGoodMesh(Voronoi.Instance, 4096, Extent.DefaultExtent);
+            Instance.Mesh = Terrain.GenerateGoodMesh(Instance, 4096, Extent.DefaultExtent);
             Instance.Heights = Terrain.Add(Instance.Heights.Length, Terrain.Slope(Instance.Mesh, Terrain.RandomVector(4)),
                 Terrain.Cone(Instance.Mesh, Terrain.Runif(-1, 1)),
                 Terrain.Mountains(Instance.Mesh, 50));
