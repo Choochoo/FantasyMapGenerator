@@ -28,7 +28,7 @@ namespace WorldMap.Layers
             {
                 if (_heights == null && Mesh != null && Mesh.Vxs != null)
                 {
-                    _heights = new double[Mesh.Vxs.Count];
+                    _heights = new double[Mesh.Vxs.Length];
                 }
                 return _heights;
             }
@@ -36,7 +36,7 @@ namespace WorldMap.Layers
         }
 
         public Mesh Mesh { get; set; }
-        public Voronoi VoronoiGenerator { get; set; }
+        public Voronoi Voronoi { get; set; }
     }
 
 }

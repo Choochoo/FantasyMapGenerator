@@ -19,13 +19,13 @@ namespace WorldMap.Layers
         }
 
         public int[] Downhill { get; set; }
-        public Voronoi VoronoiGenerator { get; set; }
+        public Voronoi Voronoi { get; set; }
         public double[] Heights
         {
             get
             {
                 if ((_heights == null) && (Mesh != null) && (Mesh.Vxs != null))
-                    _heights = new double[Mesh.Vxs.Count];
+                    _heights = new double[Mesh.Vxs.Length];
                 return _heights;
             }
             set { _heights = value; }

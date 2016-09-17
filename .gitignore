@@ -4,3 +4,8 @@ FantasyMapGenerator/obj/Debug/FantasyMapGenerator.csproj.GenerateResource.Cache
 FantasyMapGenerator/bin/Debug/WorldMap.pdb
 FantasyMapGenerator/bin/
 FantasyMapGenerator/obj/
+*.psess
+*.vspx
+D3Voronoi/obj/
+Terrain/obj/
+D3Voronoi/bin/

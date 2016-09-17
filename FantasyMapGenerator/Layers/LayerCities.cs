@@ -30,7 +30,7 @@ namespace WorldMap.Layers
 
         public int[] Downhill { get; set; }
         public CityRender CityRender { get; set; }
-        public Voronoi VoronoiGenerator { get; set; }
+        public Voronoi Voronoi { get; set; }
     }
 
 }

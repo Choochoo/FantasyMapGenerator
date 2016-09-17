@@ -538,14 +538,14 @@
             this.paintPanel.DrawQueue = null;
             this.paintPanel.Location = new System.Drawing.Point(12, 149);
             this.paintPanel.Name = "paintPanel";
-            this.paintPanel.Size = new System.Drawing.Size(700, 700);
+            this.paintPanel.Size = new System.Drawing.Size(960, 960);
             this.paintPanel.TabIndex = 0;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(721, 861);
+            this.ClientSize = new System.Drawing.Size(985, 1053);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.paintPanel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

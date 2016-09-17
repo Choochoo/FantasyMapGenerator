@@ -13,19 +13,19 @@ namespace D3Voronoi
         public Dictionary<int, Cell> Cells;
         public List<Edge> Edges;
 
-        public Diagram(List<Point> sites, Extent extent)
+        public Diagram(List<Point> sitesList, Extent extent)
         {
             //Lexicographic
-            sites = sites.OrderByDescending(p => p.Y).ThenByDescending(p => p.X).ToList();
-
-            var site = sites.Last();
-            sites.Remove(site);
+            sitesList = sitesList.OrderByDescending(p => p.Y).ThenByDescending(p => p.X).ToList();
+            var sitesLinkedList = new LinkedList<Point>(sitesList.ToArray());
+            var site = sitesLinkedList.Last();
+            sitesLinkedList.Remove(site);
             double x = double.MaxValue;
             double y = double.MaxValue;
             RedBlackTree circle;
 
             Edges = new List<Edge>();
-            Cells = new Dictionary<int, Cell>(sites.Count);
+            Cells = new Dictionary<int, Cell>(sitesLinkedList.Count);
             Beaches = new RedBlackTree();
             Circles = new RedBlackTree();
 
@@ -40,9 +40,9 @@ namespace D3Voronoi
                         x = site.X;
                         y = site.Y;
                     }
-                    site = sites.LastOrDefault();
+                    site = sitesLinkedList.LastOrDefault();
                     if (site != null)
-                        sites.Remove(site);
+                        sitesLinkedList.Remove(site);
                 }
                 else if (circle != null)
                 {
@@ -74,21 +74,19 @@ namespace D3Voronoi
             return (a.X - c.X) * (b.Y - a.Y) - (a.X - b.X) * (c.Y - a.Y);
         }
 
-        public void Polygons()
+        public List<Polygon> Polygons()
         {
             var edges = Edges;
-            /*
-            return Diagram.Cells.map(function(cell) {
-                var polygon = cell.halfedges.map(function(i) { return cellHalfedgeStart(cell, edges[i]); });
-                polygon.data = cell.site.data;
-                return polygon;
-            });
-            */
+            return Cells.Select(cell => new Polygon()
+            {
+                Points = cell.Value.HalfEdges.Select((i, h) => Cell.CellHalfedgeStart(cell.Value, edges[i])).ToList(),
+                Data = cell.Value.Site.Data
+            }).ToList();
         }
 
-        public void Triangles()
+        public List<Point[]> Triangles()
         {
-            //var triangles = [];
+            List<Point[]> triangles = new List<Point[]>();
             var edges = Edges;
 
             for (var i = 0; i < Cells.Count; i++)
@@ -99,35 +97,36 @@ namespace D3Voronoi
                 var j = -1;
                 var m = halfedges.Count;
                 Point s0;
-                var e1 = new Edge();//DON'T KNOW edges[halfedges[m - 1]];
+                var e1 = edges[halfedges[m - 1]];
                 var s1 = e1.Left == site ? e1.Right : e1.Left;
 
                 while (++j < m)
                 {
                     s0 = s1;
-                    e1 = new Edge();//DON'T KNOW edges[halfedges[j]];
+                    e1 = edges[halfedges[j]];
                     s1 = e1.Left == site ? e1.Right : e1.Left;
                     if (i < s0.Index && i < s1.Index && TriangleArea(site, s0, s1) < 0)
                     {
-                        //triangles.push([site.data, s0.data, s1.data]);
+                        triangles.Add(new Point[] {
+                            site.Data,
+                            s0.Data,
+                            s1.Data
+                        });
                     }
                 }
             }
 
-            return; //triangles;
+            return triangles;
         }
 
-        public void Links()
-        { /*
-            return Diagram.Edges.filter(function(edge) {
-                return edge.right;
-            }).map(function(edge) {
-                return {
-                    source: edge.left.data,
-        target: edge.right.data
-                        };
-            });
-        }*/
+        public List<Link> Links()
+        {
+            return Edges.Where(e => e.Right != null)
+                .Select(e => new Link()
+                {
+                    Source = e.Left.Data,
+                    Target = e.Right.Data
+                }).ToList();
         }
     }
 }

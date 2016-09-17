@@ -31,7 +31,16 @@ namespace WorldMap.Layers
 
         public int[] Downhill { get; set; }
         public CityRender CityRender { get; set; }
-        public Voronoi VoronoiGenerator { get; set; }
+        public Voronoi Voronoi { get; set; }
+
+        public void Reset()
+        {
+            _mesh = null;
+            Heights = null;
+            Downhill = null;
+            CityRender = null;
+            Voronoi = null;
+        }
     }
 
 }

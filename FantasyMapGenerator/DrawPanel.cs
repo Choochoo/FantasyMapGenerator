@@ -7,6 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using D3Voronoi;
 using Language;
 using WorldMap.Layers;
 using WorldMap.Layers.Interfaces;
@@ -72,7 +73,6 @@ namespace WorldMap
             LayerGridGenerateRandomPoints = 1,
             LayerGridImprovePoints = 2,
             LayerGridVoronoiCorners = 3,
-            LayerGridTesting = 4,
 
             //Step 2
             LayerOutlineReset = 10,
@@ -110,9 +110,12 @@ namespace WorldMap
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.Clear(Color.White);
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             if (DrawQueue == null)
                 return;
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
 
             foreach (var drawNum in DrawQueue)
             {
@@ -125,8 +128,6 @@ namespace WorldMap
                     case (int)Visualize.LayerGridImprovePoints:
                         VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts, LayerGrid.Instance);
                         break;
-                    case (int)Visualize.LayerGridTesting:
-                        VisualizeTest(e.Graphics, LayerGrid.Instance.MeshPts, LayerGrid.Instance);
                         break;
                     case (int)Visualize.LayerGridVoronoiCorners:
                         VisualizePoints(e.Graphics, LayerGrid.Instance.MeshVxs, LayerGrid.Instance);
@@ -205,123 +206,16 @@ namespace WorldMap
             }
         }
 
-        private void VisualizeTest(Graphics g, List<Point> sites, IHasVoronoi instance)
-        {
-            /*
-            var offsetWidth = (this.Width - 5) / 2;
-            var offsetHeight = (this.Height - 5) / 2;
-
-
-            var facesGraphic = new GraphicsPath();
-            foreach (var face in instance.Graph.Faces)
-            {
-                facesGraphic.AddEllipse((float)face.Location.X, (float)face.Location.Y, 7, 7);
-            }
-
-            using (var pen = new Pen(Color.Red))
-                g.DrawPath(pen, facesGraphic);
-            facesGraphic.Dispose();
-
-            var sitesGraphic = new GraphicsPath();
-            foreach (var site in sites)
-            {
-                sitesGraphic.AddEllipse((float)site.X, (float)site.Y, 3, 3);
-            }
-
-            using (var pen = new Pen(Color.Purple))
-                g.DrawPath(pen, sitesGraphic);
-            sitesGraphic.Dispose();
-
-            var linesGraphic = new GraphicsPath();
-            foreach (var edge in instance.Graph.Edges)
-            {
-                if (edge.Vertex == -1 || instance.Graph.Edges[edge.Opposite].Vertex == -1)
-                    continue;
-
-                var vert1 = instance.Graph.Vertices[edge.Vertex].Position;
-                var vert2 = instance.Graph.Vertices[instance.Graph.Edges[edge.Opposite].Vertex].Position;
-
-                var newLine = new GraphicsPath();
-                newLine.AddLine((float)vert1.X, (float)vert1.Y, (float)vert2.X, (float)vert2.Y);
-                linesGraphic.AddPath(newLine, false);
-            }
-            using (var pen = new Pen(Color.Black))
-                g.DrawPath(pen, linesGraphic);
-            linesGraphic.Dispose();
-            /*
-            // Draw vertices of the voronoi graph
-            var vtxGraphic = new GraphicsPath();
-            foreach (var vertex in instance.Graph.Vertices)
-            {
-                vtxGraphic.AddEllipse((float)vertex.Position.X * this.Width + offsetWidth, (float)vertex.Position.Y * this.Height + offsetHeight, 3, 3);
-
-            }
-            using (var pen = new Pen(Color.Black))
-                g.DrawPath(pen, vtxGraphic);
-            vtxGraphic.Dispose();*/
-        }
-
-
-
-        private void VisualizePoints(Graphics g, List<Point> points, IHasVoronoi instance)
+        private void VisualizePoints(Graphics g, Point[] points, IHasVoronoi instance)
         {
             var offsetHeight = (this.Height) / 2;
             var offsetWidth = (this.Width) / 2;
-            /*
-            var newPoints = new List<Point>();
-            for (int index = 0; index < points.Count; index++)
-            {
-                var f = points[index];
-                f.X = Math.Max(f.X, -.5f);
-                f.X = Math.Min(f.X, .5f);
-                f.Y = Math.Max(f.Y, -.5f);
-                f.Y = Math.Min(f.Y, .5f);
-
-                f.X = (f.X * this.Width) + offsetWidth;
-                f.Y = (f.Y * this.Height) + offsetHeight;
-                newPoints.Add(f);
-            }
-            */
+            var radius = (float)(100d / Math.Sqrt(points.Length));
+            var halfradius = radius / 2f;
             foreach (var point in points)
             {
-                g.FillEllipse(Brushes.Blue, (float)point.X * this.Width + offsetWidth, (float)point.Y * this.Height + offsetHeight, 5, 5);
+                g.FillEllipse(Brushes.Blue, (float)(point.X * this.Width + offsetWidth - halfradius), (float)(point.Y * this.Height + offsetHeight - halfradius), radius, radius);
             }
-
-            /*
-            if (instance != null)
-            {
-                foreach (var outputSegment in instance.Voronoi.Edges)
-                {
-                    if (!outputSegment.IsFinite)
-                        continue;
-                    var startPoint = instance.Voronoi.Vertices[outputSegment.Start];
-                    var endPoint = instance.Voronoi.Vertices[outputSegment.End];
-
-                    if (startPoint.X > 1 || startPoint.Y > 1 || startPoint.X < 0 || startPoint.Y < 0)
-                        continue;
-
-                    if (endPoint.X > 1 || endPoint.Y > 1 || endPoint.X < 0 || endPoint.Y < 0)
-                        continue;
-
-                    var graphicData = new GraphicsPath();
-                    if (outputSegment.IsLinear)
-                    {
-                        var newline = new GraphicsPath();
-                        newline.AddLines();
-                        DrawingArea.Children.Add(new Line()
-                        {
-                            X1 = ov2[outputSegment.Start].X * wh,
-                            Y1 = ov2[outputSegment.Start].Y * wh,
-                            X2 = ov2[outputSegment.End].X * wh,
-                            Y2 = ov2[outputSegment.End].Y * wh,
-                            Stroke = OutputStroke
-                        });
-                        DrawPoint(ov2[outputSegment.Start].X * wh, ov2[outputSegment.Start].Y * wh, OutputPointColoBrush, outputPointWidth, outputPointRadius);
-                        DrawPoint(ov2[outputSegment.End].X * wh, ov2[outputSegment.End].Y * wh, OutputPointColoBrush, outputPointWidth, outputPointRadius);
-                    }
-                }
-            }
-            */
         }
 
         private void VisualizeCities(Graphics g, CityRender cityRender, Mesh mesh)
@@ -459,29 +353,8 @@ namespace WorldMap
             g.DrawPath(pen, graphicsPath);
             pen.Dispose();
             graphicsPath.Dispose();
-        }/*
-            private void VisualizeOriginalPoints(Graphics g)
-            {
-                if (Sites == null)
-                    return;
-                foreach (var meshPt in OriginalPoints)
-                {
-                    g.FillEllipse(Brushes.Blue, (double)meshPt.X, (double)meshPt.Y, 3, 3);
-                }
-            }
-
-            
-        private void VisualizeVoronoiCorners(Graphics g)
-        {
-            if (PrimH == null)
-                return;
-
-            foreach (var vxs in PrimH.Mesh.Vxs)
-            {
-                g.FillEllipse(Brushes.Blue, (double)vxs.X, (double)vxs.Y, 3, 3);
-            }
         }
-        */
+
         private void VisualizeVoronoi(Graphics g, Mesh mesh, double[] heights, double lo = double.MaxValue, double hi = double.MinValue)
         {
             if (hi == double.MinValue)
@@ -537,12 +410,8 @@ namespace WorldMap
 
         public void GenerateVoronoi()
         {
-            /*
-            CreateSites(4096);
             LayerOutline.Instance.Heights = null;
-            LayerOutline.Instance.Edges = Voronoi.Instance.GenerateVoronoi(Sites, Extent.DefaultExtent);
-            LayerOutline.Instance.Mesh = Terrain.MakeMesh(null, Extent.DefaultExtent);
-            */
+            LayerOutline.Instance.Mesh = Terrain.GenerateGoodMesh(LayerOutline.Instance, 4096, Extent.DefaultExtent);
         }
 
         private void VisualizeLabels<T>(Graphics g, T instance) where T : IHasCityRender, IHasMesh, IHasHeights
@@ -572,13 +441,14 @@ namespace WorldMap
                 {
                     new PossibleLabelLocation()
                     {
-                        X = x + 0.6*sy,
-                        Y = y - 0.55*sy,
+                        X = x + 0.5*sy,
+                        Y = y - 0.30*sy,
                         Align = PossibleLabelLocation.AlignLeft,
                         X0 = x + 0.7d*sy,
                         Y0 = y - 0.6d*sy,
                         X1 = x + 0.7d*sy + sx,
-                        Y1 = y + 0.6d*sy
+                        Y1 = y + 0.6d*sy,
+                        DebugIndex = 0
                     },
                     new PossibleLabelLocation()
                     {
@@ -588,7 +458,8 @@ namespace WorldMap
                         X0 = x - 0.9d*sy - sx,
                         Y0 = y - 0.7d*sy,
                         X1 = x - 0.9d*sy,
-                        Y1 = y + 0.7d*sy
+                        Y1 = y + 0.7d*sy,
+                        DebugIndex = 1
                     },
                     new PossibleLabelLocation()
                     {
@@ -598,7 +469,8 @@ namespace WorldMap
                         X0 = x - sx/2,
                         Y0 = y - 1.9d*sy,
                         X1 = x + sx/2,
-                        Y1 = y - 0.7d*sy
+                        Y1 = y - 0.7d*sy,
+                        DebugIndex = 2
                     },
                     new PossibleLabelLocation()
                     {
@@ -608,7 +480,8 @@ namespace WorldMap
                         X0 = x - sx/2,
                         Y0 = y + 0.1d*sy,
                         X1 = x + sx/2,
-                        Y1 = y + 1.3d*sy
+                        Y1 = y + 1.3d*sy,
+                        DebugIndex = 3
                     }
                 };
 
@@ -698,32 +571,50 @@ namespace WorldMap
             }
             DrawText(g, reglabels, true);
         }
+
         private void DrawText(Graphics g, List<PossibleLabelLocation> labels, bool isBold)
         {
             var multiplier = this.Width;
             var offsetHeight = this.Height / 2;
             var offsetWidth = this.Width / 2;
-            using (var brush = new SolidBrush(Color.Black))
+            var textPath = new GraphicsPath();
+            var fontfamily = new FontFamily("Palatino Linotype");
+
+
+            foreach (var label in labels)
             {
-                foreach (var label in labels)
+                var sf = new StringFormat();
+                switch (label.Align)
                 {
-                    var sf = new StringFormat();
-                    switch (label.Align)
-                    {
-                        case PossibleLabelLocation.AlignRight:
-                            sf.Alignment = StringAlignment.Far;
-                            break;
-                        case PossibleLabelLocation.AlignCenter:
-                            sf.Alignment = StringAlignment.Center;
-                            break;
-                        case PossibleLabelLocation.AlignLeft:
-                            sf.Alignment = StringAlignment.Near;
-                            break;
-                    }
-                    var font = isBold ? new Font("Palatino Linotype", label.Size, FontStyle.Bold) : new Font("Palatino Linotype", label.Size);
-                    g.DrawString(label.Text, font, brush, new PointF((float)((label.X * multiplier) + offsetWidth), (float)((label.Y * multiplier) + offsetHeight)), sf);
+                    case PossibleLabelLocation.AlignRight:
+                        sf.Alignment = StringAlignment.Far;
+                        break;
+                    case PossibleLabelLocation.AlignCenter:
+                        sf.Alignment = StringAlignment.Center;
+                        break;
+                    case PossibleLabelLocation.AlignLeft:
+                        sf.Alignment = StringAlignment.Near;
+                        break;
                 }
+                var textPosition = new PointF((float)((label.X * multiplier) + offsetWidth), (float)((label.Y * multiplier) + offsetHeight));
+                textPath.AddString(label.Text, fontfamily, (int)(isBold ? FontStyle.Bold : FontStyle.Regular), g.DpiY * label.Size / 72, textPosition, sf);
             }
+
+            var textBrush = new SolidBrush(Color.Black);
+
+            var textOutline = new Pen(Color.White, 5);
+            var textOutlineFill = new SolidBrush(Color.White);
+
+
+            g.DrawPath(textOutline, textPath);
+            g.FillPath(textOutlineFill, textPath);
+
+            g.FillPath(textBrush, textPath);
+
+            textBrush.Dispose();
+            textOutline.Dispose();
+            textOutlineFill.Dispose();
+            textPath.Dispose();
         }
     }
 }

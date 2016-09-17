@@ -20,9 +20,9 @@ namespace WorldMap.Layers
 
         private static LayerGrid _instance;
 
-        public List<Point> MeshPts { get; set; }
-        public List<Point> MeshVxs { get; set; }
-        public Voronoi VoronoiGenerator { get; set; }
+        public Point[] MeshPts { get; set; }
+        public Point[] MeshVxs { get; set; }
+        public Voronoi Voronoi { get; set; }
 
     }
 
