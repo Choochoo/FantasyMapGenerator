@@ -12,6 +12,7 @@ using Language;
 using WorldMap.Layers;
 using WorldMap.Layers.Interfaces;
 using Point = D3Voronoi.Point;
+using TerrainGenerator;
 
 namespace WorldMap
 {
@@ -35,6 +36,16 @@ namespace WorldMap
             {
                 _drawQueue = value;
                 Invalidate();
+            }
+        }
+
+        private Terrain _terrain;
+        public Terrain Terrain
+        {
+            get
+            {
+                if (_terrain == null) _terrain = new Terrain(200);
+                return _terrain;
             }
         }
 
@@ -119,18 +130,23 @@ namespace WorldMap
 
             foreach (var drawNum in DrawQueue)
             {
+                Mesh mesh;
+                double[] heights;
+                int[] downhill;
+                CityRender cityRender;
+
                 switch (drawNum)
                 {
                     //Step 1
                     case (int)Visualize.LayerGridGenerateRandomPoints:
-                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts, LayerGrid.Instance);
+                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts);
                         break;
                     case (int)Visualize.LayerGridImprovePoints:
-                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts, LayerGrid.Instance);
+                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts);
                         break;
                         break;
                     case (int)Visualize.LayerGridVoronoiCorners:
-                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshVxs, LayerGrid.Instance);
+                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshVxs);
                         break;
                     //Step 2
                     case (int)Visualize.LayerOutlineReset:
@@ -145,7 +161,9 @@ namespace WorldMap
                     case (int)Visualize.LayerOutlineRelax:
                     case (int)Visualize.LayerOutlineSetSeaLevelToMedian:
                         VisualizeVoronoi(e.Graphics, LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights, -1f, 1f);
-                        VisualizePaths(e.Graphics, Terrain.Contour(LayerOutline.Instance), _coastColor, _coastSize);
+                        mesh = LayerOutline.Instance.Mesh;
+                        heights = LayerOutline.Instance.Heights;
+                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
                         break;
                     //Step 3
                     case (int)Visualize.LayerErosionGenerateRandomHeightmap:
@@ -154,21 +172,31 @@ namespace WorldMap
                     case (int)Visualize.LayerErosionCleanCoastlines:
                     case (int)Visualize.LayerErosionHideErosionRate:
                         VisualizeVoronoi(e.Graphics, LayerErosion.Instance.Mesh, LayerErosion.Instance.Heights, 0f, 1f);
-                        VisualizePaths(e.Graphics, Terrain.Contour(LayerErosion.Instance), _coastColor, _coastSize);
+                        mesh = LayerErosion.Instance.Mesh;
+                        heights = LayerErosion.Instance.Heights;
+                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
                         break;
                     case (int)Visualize.LayerErosionShowErosionRate:
-                        VisualizeVoronoi(e.Graphics, LayerErosion.Instance.Mesh, Terrain.ErosionRate(LayerErosion.Instance.Mesh, LayerErosion.Instance, LayerErosion.Instance.Heights));
-                        VisualizePaths(e.Graphics, Terrain.Contour(LayerErosion.Instance), _coastColor, _coastSize);
+                        mesh = LayerErosion.Instance.Mesh;
+                        heights = LayerErosion.Instance.Heights;
+                        downhill = LayerErosion.Instance.Downhill;
+                        VisualizeVoronoi(e.Graphics, LayerErosion.Instance.Mesh, Terrain.ErosionRate(mesh, ref downhill, heights));
+                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
                         break;
                     //Step 4
                     case (int)Visualize.LayerRenderingGenerateRandomHeightmap:
                         VisualizeVoronoi(e.Graphics, LayerRendering.Instance.Mesh, LayerRendering.Instance.Heights, 0);
                         break;
                     case (int)Visualize.LayerRenderingShowCoastline:
-                        VisualizePaths(e.Graphics, Terrain.Contour(LayerRendering.Instance), _coastColor, _coastSize);
+                        mesh = LayerRendering.Instance.Mesh;
+                        heights = LayerRendering.Instance.Heights;
+                        VisualizePaths(e.Graphics, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
                         break;
                     case (int)Visualize.LayerRenderingShowRivers:
-                        VisualizePaths(e.Graphics, Terrain.GetRivers(LayerRendering.Instance, 0.01d), _riverColor, _riverSize);
+                        mesh = LayerRendering.Instance.Mesh;
+                        heights = LayerRendering.Instance.Heights;
+                        downhill = LayerRendering.Instance.Downhill;
+                        VisualizePaths(e.Graphics, Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d), _riverColor, _riverSize);
                         break;
                     case (int)Visualize.LayerRenderingShowSlopeShading:
                         VisualizeSlopes(e.Graphics, LayerRendering.Instance.Mesh, LayerRendering.Instance.Heights);
@@ -186,9 +214,14 @@ namespace WorldMap
                         {
                             VisualizeVoronoi(e.Graphics, instance.Mesh, instance.CityRender.Territories);
                         }
-                        VisualizePaths(e.Graphics, Terrain.Contour(instance), _coastColor, _coastSize);
-                        VisualizePaths(e.Graphics, Terrain.GetRivers(instance, 0.01d), _riverColor, _riverSize);
-                        VisualizePaths(e.Graphics, Terrain.GetBorders(instance), _borderColor, _borderSize);
+                        mesh = instance.Mesh;
+                        heights = instance.Heights;
+                        downhill = instance.Downhill;
+                        cityRender = instance.CityRender;
+
+                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
+                        VisualizePaths(e.Graphics, _terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d), _riverColor, _riverSize);
+                        VisualizePaths(e.Graphics, _terrain.GetBorders(ref mesh, ref cityRender, ref heights), _borderColor, _borderSize);
                         VisualizeSlopes(e.Graphics, instance.Mesh, instance.Heights);
                         VisualizeCities(e.Graphics, instance.CityRender, instance.Mesh);
                         break;
@@ -206,7 +239,7 @@ namespace WorldMap
             }
         }
 
-        private void VisualizePoints(Graphics g, Point[] points, IHasVoronoi instance)
+        private void VisualizePoints(Graphics g, Point[] points)
         {
             var offsetHeight = (this.Height) / 2;
             var offsetWidth = (this.Width) / 2;
@@ -411,7 +444,7 @@ namespace WorldMap
         public void GenerateVoronoi()
         {
             LayerOutline.Instance.Heights = null;
-            LayerOutline.Instance.Mesh = Terrain.GenerateGoodMesh(LayerOutline.Instance, 4096, Extent.DefaultExtent);
+            LayerOutline.Instance.Mesh = _terrain.GenerateGoodMesh(4096, Extent.DefaultExtent);
         }
 
         private void VisualizeLabels<T>(Graphics g, T instance) where T : IHasCityRender, IHasMesh, IHasHeights
@@ -510,8 +543,8 @@ namespace WorldMap
                 var text = LanguageGenerator.MakeName(lang, "region");
                 var sy = finalCityRender.AreaProperties.FontSizeRegion / 1000d;
                 var sx = 0.6d * text.Length * sy;
-                var lc = Terrain.TerrCenter(mesh, h, terr, city, true);
-                var oc = Terrain.TerrCenter(mesh, h, terr, city, false);
+                var lc = _terrain.TerrCenter(mesh, h, terr, city, true);
+                var oc = _terrain.TerrCenter(mesh, h, terr, city, false);
                 var best = 0;
                 var bestscore = -double.MaxValue;
                 for (var j = 0; j < h.Length; j++)

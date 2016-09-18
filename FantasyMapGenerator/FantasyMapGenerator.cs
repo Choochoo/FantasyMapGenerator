@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using D3Voronoi;
+using TerrainGenerator;
 using WorldMap.Layers;
 
 namespace WorldMap
@@ -16,13 +17,14 @@ namespace WorldMap
 
         private void generateRandomPoints_Click(object sender, EventArgs e)
         {
-            LayerGrid.Instance.MeshPts = Terrain.GeneratePoints(10, Extent.DefaultExtent);
+            LayerGrid.Instance.MeshPts = paintPanel.Terrain.GeneratePoints(10, Extent.DefaultExtent);
+            improvePoints.Enabled = showOriginalPoints.Enabled = true;
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerGridGenerateRandomPoints };
         }
 
         private void improvePoints_Click(object sender, EventArgs e)
         {
-            LayerGrid.Instance.MeshPts = Terrain.ImprovePoints(LayerGrid.Instance, LayerGrid.Instance.MeshPts, Extent.DefaultExtent, 1);
+            LayerGrid.Instance.MeshPts = paintPanel.Terrain.ImprovePoints(LayerGrid.Instance.MeshPts, Extent.DefaultExtent, 1);
             LayerGrid.Instance.MeshVxs = null;
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerGridGenerateRandomPoints };
         }
@@ -37,7 +39,7 @@ namespace WorldMap
 
                 if (LayerGrid.Instance.MeshVxs == null)
                 {
-                    LayerGrid.Instance.MeshVxs = Terrain.MakeMesh(LayerGrid.Instance.MeshPts, Extent.DefaultExtent).Vxs;
+                    LayerGrid.Instance.MeshVxs = paintPanel.Terrain.MakeMesh(LayerGrid.Instance.MeshPts, Extent.DefaultExtent).Vxs;
                 }
                 paintPanel.DrawQueue = new int[] { (int)DrawPanel.Visualize.LayerGridVoronoiCorners };
             }
@@ -57,74 +59,94 @@ namespace WorldMap
 
         private void randomSlope_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, Terrain.Slope(LayerOutline.Instance.Mesh, Terrain.RandomVector(4)));
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, paintPanel.Terrain.Slope(LayerOutline.Instance.Mesh, paintPanel.Terrain.RandomVector(4)));
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineSlope };
         }
 
         private void cone_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, Terrain.Cone(LayerOutline.Instance.Mesh, -0.5f));
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, paintPanel.Terrain.Cone(LayerOutline.Instance.Mesh, -0.5f));
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineCone };
         }
 
         private void invertedCone_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, Terrain.Cone(LayerOutline.Instance.Mesh, 0.5f));
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, paintPanel.Terrain.Cone(LayerOutline.Instance.Mesh, 0.5f));
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineInvertedCone };
         }
 
         private void fiveBlobs_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, Terrain.Mountains(LayerOutline.Instance.Mesh, 5));
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Add(LayerOutline.Instance.Heights.Length, LayerOutline.Instance.Heights, paintPanel.Terrain.Mountains(LayerOutline.Instance.Mesh, 5));
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineFiveBlobs };
         }
 
         private void normalizeHeightmap_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Normalize(LayerOutline.Instance.Heights);
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Normalize(LayerOutline.Instance.Heights);
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineNormalizeHeightmap };
         }
 
         private void roundHills_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Peaky(LayerOutline.Instance.Heights);
+            var heights = LayerOutline.Instance.Heights;
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Peaky(heights);
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineRoundHills };
         }
 
         private void relax_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.Relax(LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights);
+            LayerOutline.Instance.Heights = paintPanel.Terrain.Relax(LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights);
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineRelax };
         }
 
         private void setSeaLevelToMedian_Click(object sender, EventArgs e)
         {
-            LayerOutline.Instance.Heights = Terrain.SetSeaLevel(LayerOutline.Instance.Heights, 0.5f);
+            LayerOutline.Instance.Heights = paintPanel.Terrain.SetSeaLevel(LayerOutline.Instance.Heights, 0.5f);
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineSetSeaLevelToMedian };
         }
 
         private void erodeGenerateRandomHeightMap_Click(object sender, EventArgs e)
         {
-            LayerErosion.GenerateUneroded();
+            var mesh = LayerErosion.Instance.Mesh;
+            var heights = LayerErosion.Instance.Heights;
+
+            paintPanel.Terrain.GenerateUneroded(ref mesh, ref heights);
+
+            LayerErosion.Instance.Mesh = mesh;
+            LayerErosion.Instance.Heights = heights;
+
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerErosionGenerateRandomHeightmap };
         }
 
         private void erode_Click(object sender, EventArgs e)
         {
-            LayerErosion.Instance.Heights = Terrain.DoErosion(LayerErosion.Instance.Mesh, LayerErosion.Instance, LayerErosion.Instance.Heights, 0.1f);
+            var mesh = LayerErosion.Instance.Mesh;
+            var heights = LayerErosion.Instance.Heights;
+            var downhill = LayerErosion.Instance.Downhill;
+
+            heights = paintPanel.Terrain.DoErosion(ref mesh, ref downhill, heights, 0.1f);
+
+            LayerErosion.Instance.Mesh = mesh;
+            LayerErosion.Instance.Heights = heights;
+            LayerErosion.Instance.Downhill = downhill;
+
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerErosionErode };
         }
 
         private void erodeSeaLeveltoMedian_Click(object sender, EventArgs e)
         {
-            LayerErosion.Instance.Heights = Terrain.SetSeaLevel(LayerErosion.Instance.Heights, 0.5f);
+            LayerErosion.Instance.Heights = paintPanel.Terrain.SetSeaLevel(LayerErosion.Instance.Heights, 0.5f);
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerErosionSetSeaLevelToMedian };
         }
 
         private void cleanCoastlines_Click(object sender, EventArgs e)
         {
-            LayerErosion.Instance.Heights = Terrain.CleanCoast(LayerErosion.Instance.Mesh, LayerErosion.Instance.Heights, 1);
-            LayerErosion.Instance.Heights = Terrain.FillSinks(LayerErosion.Instance.Mesh, LayerErosion.Instance.Heights);
+            var mesh = LayerErosion.Instance.Mesh;
+            LayerErosion.Instance.Heights = paintPanel.Terrain.CleanCoast(mesh, LayerErosion.Instance.Heights, 1);
+            LayerErosion.Instance.Heights = paintPanel.Terrain.FillSinks(ref mesh, LayerErosion.Instance.Heights);
+            LayerErosion.Instance.Mesh = mesh;
+
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerErosionCleanCoastlines };
         }
 
@@ -163,7 +185,15 @@ namespace WorldMap
 
         private void renderingGenerateRandomHeightmap_Click(object sender, EventArgs e)
         {
-            LayerRendering.Instance.Heights = Terrain.GenerateCoast(LayerRendering.Instance, 4096, Extent.DefaultExtent);
+            var instance = LayerRendering.Instance;
+            var downhill = instance.Downhill;
+            var mesh = instance.Mesh;
+
+            LayerRendering.Instance.Heights = paintPanel.Terrain.GenerateCoast(ref downhill, ref mesh, 4096, Extent.DefaultExtent);
+
+            instance.Downhill = downhill;
+            instance.Mesh = mesh;
+
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerRenderingGenerateRandomHeightmap };
         }
         private void renderingShowCoastline_Click(object sender, EventArgs e)
@@ -184,26 +214,59 @@ namespace WorldMap
         }
         private void citiesGenerateRandomHeightmap_Click(object sender, EventArgs e)
         {
-            LayerCities.Instance.CityRender = Terrain.NewCityRender(LayerCities.Instance, Extent.DefaultExtent);
+            var instance = LayerCities.Instance;
+            var downhill = instance.Downhill;
+            var mesh = instance.Mesh;
+            var heights = instance.Heights;
+
+            instance.CityRender = paintPanel.Terrain.NewCityRender(ref downhill, ref mesh, ref heights, Extent.DefaultExtent);
+
+            instance.Downhill = downhill;
+            instance.Mesh = mesh;
+            instance.Heights = heights;
+
             CityDraw();
         }
         private void cityAddNew_Click(object sender, EventArgs e)
         {
-            Terrain.PlaceCity(LayerCities.Instance);
+            var instance = LayerCities.Instance;
+            var cityRender = instance.CityRender;
+            var downhill = instance.Downhill;
+            var mesh = instance.Mesh;
+            var heights = instance.Heights;
+            var cities = cityRender.Cities;
+
+            paintPanel.Terrain.PlaceCity(ref cities, ref downhill, ref mesh, ref heights);
+            cityRender.Cities = cities;
+            instance.CityRender = cityRender;
+            instance.Downhill = downhill;
+            instance.Mesh = mesh;
+            instance.Heights = heights;
+
             CityDraw();
         }
         public void CityDraw(bool cityViewScore = true)
         {
-            LayerCities.Instance.CityRender.Territories = Terrain.GetTerritories(LayerCities.Instance);
+            var instance = LayerCities.Instance;
+            var cityRender = instance.CityRender;
+            var downhill = instance.Downhill;
+            var mesh = instance.Mesh;
+            var heights = instance.Heights;
+
+            cityRender.Territories = paintPanel.Terrain.GetTerritories(ref cityRender, ref downhill, ref mesh, ref heights);
+
+            instance.CityRender = cityRender;
+
+            var cities = cityRender.Cities;
             if (cityViewScore)
-            {
-                LayerCities.Instance.CityRender.Score = Terrain.CityScore(LayerCities.Instance);
-                paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerCitiesViewCities };
-            }
-            else
-            {
-                paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerCitiesViewTerritories };
-            }
+                LayerCities.Instance.CityRender.Score = paintPanel.Terrain.CityScore(ref cities, ref downhill, ref mesh, ref heights);
+
+            instance.CityRender.Cities = cities;
+            instance.Downhill = downhill;
+            instance.Mesh = mesh;
+            instance.Heights = heights;
+
+            paintPanel.DrawQueue = cityViewScore ? new[] { (int)DrawPanel.Visualize.LayerCitiesViewCities } : new[] { (int)DrawPanel.Visualize.LayerCitiesViewTerritories };
 
         }
         private void showTerritories_Click(object sender, EventArgs e)
@@ -212,12 +275,12 @@ namespace WorldMap
             if (((Button)sender).Text == originalText)
             {
                 ((Button)sender).Text = "Hide Territories";
-                CityDraw();
+                CityDraw(false);
             }
             else
             {
                 ((Button)sender).Text = originalText;
-                CityDraw(false);
+                CityDraw();
             }
         }
         private void genHighResolutionMap_Click(object sender, EventArgs e)
@@ -229,14 +292,21 @@ namespace WorldMap
             var instance = LayerLabels.Instance;
             instance.Reset();
             var cityRender = instance.CityRender = new CityRender();
-            instance.Heights = Terrain.GenerateCoast(instance, cityRender.AreaProperties.NumberOfPoints, Extent.DefaultExtent);
+            var downhill = instance.Downhill;
+            var mesh = instance.Mesh;
+            var heights = paintPanel.Terrain.GenerateCoast(ref downhill, ref mesh, cityRender.AreaProperties.NumberOfPoints, Extent.DefaultExtent);
 
-            Terrain.PlaceCities(instance);
+            paintPanel.Terrain.PlaceCities(ref cityRender, ref downhill, ref mesh, ref heights);
 
-            cityRender.Rivers = Terrain.GetRivers(instance, 0.01d);
-            cityRender.Coasts = Terrain.Contour(instance, 0);
-            cityRender.Territories = Terrain.GetTerritories(instance);
-            cityRender.Borders = Terrain.GetBorders(instance);
+            cityRender.Rivers = paintPanel.Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d);
+            cityRender.Coasts = paintPanel.Terrain.Contour(ref mesh, ref heights, 0);
+            cityRender.Territories = paintPanel.Terrain.GetTerritories(ref cityRender, ref downhill, ref mesh, ref heights);
+            cityRender.Borders = paintPanel.Terrain.GetBorders(ref mesh, ref cityRender, ref heights);
+
+            instance.CityRender = cityRender;
+            instance.Downhill = downhill;
+            instance.Mesh = mesh;
+            instance.Heights = heights;
 
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerLabelsDoMap };
         }

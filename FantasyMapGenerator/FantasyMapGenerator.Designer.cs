@@ -116,6 +116,7 @@
             // showOriginalPoints
             // 
             this.showOriginalPoints.BackColor = System.Drawing.Color.White;
+            this.showOriginalPoints.Enabled = false;
             this.showOriginalPoints.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.showOriginalPoints.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.showOriginalPoints.ForeColor = System.Drawing.Color.Black;
@@ -130,6 +131,7 @@
             // improvePoints
             // 
             this.improvePoints.BackColor = System.Drawing.Color.White;
+            this.improvePoints.Enabled = false;
             this.improvePoints.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.improvePoints.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.improvePoints.ForeColor = System.Drawing.Color.Black;
@@ -534,20 +536,19 @@
             // 
             // paintPanel
             // 
-            this.paintPanel.BackColor = System.Drawing.Color.White;
             this.paintPanel.DrawQueue = null;
-            this.paintPanel.Location = new System.Drawing.Point(12, 149);
+            this.paintPanel.Location = new System.Drawing.Point(16, 146);
             this.paintPanel.Name = "paintPanel";
-            this.paintPanel.Size = new System.Drawing.Size(960, 960);
-            this.paintPanel.TabIndex = 0;
+            this.paintPanel.Size = new System.Drawing.Size(640, 640);
+            this.paintPanel.TabIndex = 3;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(985, 1053);
-            this.Controls.Add(this.tabControl1);
+            this.ClientSize = new System.Drawing.Size(677, 793);
             this.Controls.Add(this.paintPanel);
+            this.Controls.Add(this.tabControl1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "Fantasy World Generator";
@@ -564,7 +565,6 @@
 
         #endregion
 
-        private DrawPanel paintPanel;
         private System.Windows.Forms.Button erodeGenerateRandomHeightMap;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage Grids;
@@ -598,6 +598,7 @@
         private System.Windows.Forms.Button cityAddNew;
         private System.Windows.Forms.Button citiesGenerateRandomHeightmap;
         private System.Windows.Forms.Button genHighResolutionMap;
+        private DrawPanel paintPanel;
     }
 }
 

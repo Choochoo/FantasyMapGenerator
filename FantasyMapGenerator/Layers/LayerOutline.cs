@@ -1,11 +1,11 @@
 ﻿
 
-using D3Voronoi;
+using TerrainGenerator;
 using WorldMap.Layers.Interfaces;
 
 namespace WorldMap.Layers
 {
-    public class LayerOutline : IHasHeights, IHasMesh, IHasVoronoi
+    public class LayerOutline : IHasHeights, IHasMesh, IResetable
     {
         public static LayerOutline Instance
         {
@@ -36,7 +36,11 @@ namespace WorldMap.Layers
         }
 
         public Mesh Mesh { get; set; }
-        public Voronoi Voronoi { get; set; }
+        public void Reset()
+        {
+            Mesh = null;
+            Heights = null;
+        }
     }
 
 }

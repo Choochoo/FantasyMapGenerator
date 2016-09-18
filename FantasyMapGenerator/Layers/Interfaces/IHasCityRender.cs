@@ -1,4 +1,8 @@
-﻿namespace WorldMap.Layers.Interfaces
+﻿
+
+using TerrainGenerator;
+
+namespace WorldMap.Layers.Interfaces
 {
     public interface IHasCityRender
     {

@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using D3Voronoi;
+﻿using D3Voronoi;
 using WorldMap.Layers.Interfaces;
 
 namespace WorldMap.Layers
 {
-    public class LayerGrid : IHasVoronoi
+    public class LayerGrid : IResetable
     {
         public static LayerGrid Instance
         {
@@ -22,7 +21,11 @@ namespace WorldMap.Layers
 
         public Point[] MeshPts { get; set; }
         public Point[] MeshVxs { get; set; }
-        public Voronoi Voronoi { get; set; }
+        public void Reset()
+        {
+            MeshPts = null;
+            MeshVxs = null;
+        }
 
     }
 

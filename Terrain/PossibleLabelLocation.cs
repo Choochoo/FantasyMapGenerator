@@ -1,4 +1,4 @@
-﻿namespace WorldMap
+﻿namespace TerrainGenerator
 {
     public class PossibleLabelLocation
     {

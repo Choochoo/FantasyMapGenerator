@@ -1,90 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using D3Voronoi;
 using MathNet.Numerics.Statistics;
 using Priority_Queue;
-using WorldMap.Layers.Interfaces;
 
-namespace WorldMap
+namespace TerrainGenerator
 {
-    public class CityProperty : FastPriorityQueueNode
-    {
-        public double Score;
-        public int City;
-        public int Vx;
-    }
-
-    public class AreaProperties
-    {
-        public int NumberOfPoints = 16384;
-        public int NumberOfCities = 15;
-        public int NumberOfTerritories = 5;
-        public int FontSizeRegion = 40;
-        public int FontSizeCity = 25;
-        public int FontSizeTown = 20;
-    }
-
-    public class CityRender
-    {
-        private AreaProperties _areaProperties = null;
-        public AreaProperties AreaProperties
-        {
-            get
-            {
-                if (_areaProperties == null)
-                {
-                    _areaProperties = new AreaProperties();
-                }
-                return _areaProperties;
-            }
-            set { _areaProperties = value; }
-        }
-        public double[] Score;
-        public double[] Territories;
-        public List<int> Cities = new List<int>();
-
-        public List<List<Point>> Rivers;
-        public List<List<Point>> Coasts;
-        public List<List<Point>> Borders;
-    }
-
-    public class Mesh
-    {
-        public Point[] Pts;
-        public Point[] Vxs;
-        public Dictionary<string, int> Vxids;
-        public Dictionary<int, List<int>> Adj;
-        public List<MapEdge> Edges;
-        public Dictionary<int, List<Point>> Tris;
-        public Extent Extent;
-    }
-
-    public class Polygon
-    {
-        public List<Point> Points = new List<Point>();
-    }
-
-    public class MapEdge
-    {
-        public int Spot1;
-        public int Spot2;
-        public Point Left;
-        public Point Right;
-    }
-
 
     public class Terrain
     {
-        private static Random random = new Random(200);
+        private Random _random;
 
-        public static double Runif(double lo, double hi)
+        public Terrain(int seed)
         {
-            return lo + random.NextDouble() * (hi - lo);
+            _random = new Random(seed);
         }
 
-        public static void RNorm(out double x1, out double x2)
+        public double Runif(double lo, double hi)
+        {
+            return lo + _random.NextDouble() * (hi - lo);
+        }
+
+        public void RNorm(out double x1, out double x2)
         {
             x1 = 0;
             x2 = 0;
@@ -100,52 +38,52 @@ namespace WorldMap
             x1 *= w;
         }
 
-        public static Point[] GeneratePoints(int n, Extent extent)
+        public Point[] GeneratePoints(int n, Extent extent)
         {
             var pts = new Point[n];
             for (var i = 0; i < n; i++)
             {
-                var x = (random.NextDouble() - 0.5) * extent.Width;
-                var y = (random.NextDouble() - 0.5) * extent.Height;
+                var x = (_random.NextDouble() - 0.5) * extent.Width;
+                var y = (_random.NextDouble() - 0.5) * extent.Height;
                 pts[i] = new Point(x, y);
             }
             return pts;
         }
 
-        public static Mesh GenerateGoodMesh(IHasVoronoi instance, int n, Extent extent)
+        public Mesh GenerateGoodMesh(int n, Extent extent)
         {
-            var pts = GenerateGoodPoints(instance, n, extent);
+            var pts = GenerateGoodPoints(n, extent);
             return MakeMesh(pts, extent);
         }
 
-        private static Point[] GenerateGoodPoints(IHasVoronoi instance, int n, Extent extent)
+        private Point[] GenerateGoodPoints(int n, Extent extent)
         {
             var pts = GeneratePoints(n, extent);
             Array.Sort(pts, (a, b) => a.X.CompareTo(b.X));
-            return ImprovePoints(instance, pts, extent, 1);
+            return ImprovePoints(pts, extent, 1);
         }
 
-        public static double[] GenerateCoast<T>(T instance, int npts, Extent extent) where T : IHasDownhill, IHasMesh, IHasVoronoi
+        public double[] GenerateCoast(ref int[] downhill, ref Mesh mesh, int npts, Extent extent)
         {
-            instance.Mesh = Terrain.GenerateGoodMesh(instance, npts, extent);
-            var h = Terrain.Add(instance.Mesh.Vxs.Length,
-                Terrain.Slope(instance.Mesh, Terrain.RandomVector(4)),
-                Terrain.Cone(instance.Mesh, Terrain.Runif(-1, -1)),
-                Terrain.Mountains(instance.Mesh, 50)
+            mesh = GenerateGoodMesh(npts, extent);
+            var h = Add(mesh.Vxs.Length,
+                Slope(mesh, RandomVector(4)),
+                Cone(mesh, Runif(-1, -1)),
+                Mountains(mesh, 50)
                 );
             for (var i = 0; i < 10; i++)
             {
-                h = Terrain.Relax(instance.Mesh, h);
+                h = Relax(mesh, h);
             }
-            h = Terrain.Peaky(h);
-            h = Terrain.DoErosion(instance.Mesh, instance, h, Terrain.Runif(0, 0.1d), 5);
-            h = Terrain.SetSeaLevel(h, Terrain.Runif(0.2d, 0.6d));
-            h = Terrain.FillSinks(instance.Mesh, h);
-            h = Terrain.CleanCoast(instance.Mesh, h, 3);
+            h = Peaky(h);
+            h = DoErosion(ref mesh, ref downhill, h, Runif(0, 0.1d), 5);
+            h = SetSeaLevel(h, Runif(0.2d, 0.6d));
+            h = FillSinks(ref mesh, h);
+            h = CleanCoast(mesh, h, 3);
             return h;
         }
 
-        private static Point Centroid(List<Point> pts)
+        private Point Centroid(List<Point> pts)
         {
             var x = 0d;
             var y = 0d;
@@ -157,32 +95,27 @@ namespace WorldMap
             return new Point(x / pts.Count, y / pts.Count);
         }
 
-        public static Point[] ImprovePoints(IHasVoronoi instance, Point[] pts, Extent extent, int n = 1)
+        public Point[] ImprovePoints(Point[] pts, Extent extent, int n = 1)
         {
             extent = extent == null ? Extent.DefaultExtent : extent;
             for (var i = 0; i < n; i++)
             {
-                pts = Voronoi(instance.Voronoi, extent).Polygons(pts).Select(p => Centroid(p.Points)).ToArray();
+                pts = Voronoi(extent).Polygons(pts).Select(p => Centroid(p.Points)).ToArray();
             }
             return pts;
         }
-        public static Voronoi Voronoi(Voronoi voronoi, Extent extent)
+        public Voronoi Voronoi(Extent extent)
         {
             extent = extent == null ? Extent.DefaultExtent : extent;
             var w = extent.Width / 2d;
             var h = extent.Height / 2d;
             var newExtent = new Extent(-w, -h, w, h);
-            if (voronoi == null)
-                voronoi = new Voronoi(newExtent);
-            else
-                voronoi.Extent = newExtent;
-
-            return voronoi;
+            return new Voronoi(newExtent);
         }
 
-        public static Mesh MakeMesh(Point[] pts, Extent extent)
+        public Mesh MakeMesh(Point[] pts, Extent extent)
         {
-            var vor = Voronoi(null, extent).VoronoiDiagram(pts);
+            var vor = Voronoi(extent).VoronoiDiagram(pts);
             var vxs = new List<Point>();
             var vxids = new Dictionary<string, int>();
             var adj = new Dictionary<int, List<int>>();
@@ -292,7 +225,7 @@ namespace WorldMap
             return mesh;
         }
 
-        public static double[] Add(int count, params double[][] values)
+        public double[] Add(int count, params double[][] values)
         {
             var newvals = new double[count];
             for (var i = 0; i < count; i++)
@@ -305,12 +238,12 @@ namespace WorldMap
             return newvals;
         }
 
-        public static double[] Mountains(Mesh mesh, int n, double r = 0.05f)
+        public double[] Mountains(Mesh mesh, int n, double r = 0.05f)
         {
             var mounts = new List<Point>();
             for (var i = 0; i < n; i++)
             {
-                mounts.Add(new Point(mesh.Extent.Width * (random.NextDouble() - 0.5f), mesh.Extent.Height * (random.NextDouble() - 0.5f)));
+                mounts.Add(new Point(mesh.Extent.Width * (_random.NextDouble() - 0.5f), mesh.Extent.Height * (_random.NextDouble() - 0.5f)));
             }
             var newvals = new double[mesh.Vxs.Length];
             for (var i = 0; i < mesh.Vxs.Length; i++)
@@ -328,7 +261,7 @@ namespace WorldMap
             return newvals;
         }
 
-        public static double[] Slope(Mesh mesh, Point direction)
+        public double[] Slope(Mesh mesh, Point direction)
         {
             var output = new List<double>();
             foreach (var f in mesh.Vxs)
@@ -338,7 +271,7 @@ namespace WorldMap
             return output.ToArray();
         }
 
-        public static double[] Cone(Mesh mesh, double slope)
+        public double[] Cone(Mesh mesh, double slope)
         {
             var output = new List<double>();
             foreach (var f in mesh.Vxs)
@@ -348,7 +281,7 @@ namespace WorldMap
             return output.ToArray();
         }
 
-        public static double[] Normalize(double[] heights)
+        public double[] Normalize(double[] heights)
         {
             var lo = heights.Min();
             var hi = heights.Max();
@@ -360,7 +293,7 @@ namespace WorldMap
             return output.ToArray();
         }
 
-        public static double[] Peaky(double[] heights)
+        public double[] Peaky(double[] heights)
         {
             var output = new List<double>();
             var normalized = Normalize(heights);
@@ -372,7 +305,7 @@ namespace WorldMap
             return output.ToArray();
         }
 
-        public static double[] Relax(Mesh mesh, double[] heights)
+        public double[] Relax(Mesh mesh, double[] heights)
         {
             var output = new double[heights.Length];
             for (var i = 0; i < heights.Length; i++)
@@ -392,7 +325,7 @@ namespace WorldMap
             return output.ToArray();
         }
 
-        public static List<int> Neighbours(Mesh mesh, int index)
+        public List<int> Neighbours(Mesh mesh, int index)
         {
             var onbs = mesh.Adj[index];
             var nbs = new List<int>();
@@ -403,7 +336,7 @@ namespace WorldMap
             return nbs;
         }
 
-        public static Point RandomVector(int scale)
+        public Point RandomVector(int scale)
         {
             var xOut = 0d;
             var yOut = 0d;
@@ -411,22 +344,33 @@ namespace WorldMap
             return new Point(scale * xOut, scale * yOut);
         }
 
-        public static double[] Randomdoubles(int scale)
+        public double[] _randomdoubles(int scale)
         {
             var vector = RandomVector(scale);
             return new[] { (double)vector.X, (double)vector.Y };
         }
 
+        public void GenerateUneroded(ref Mesh mesh, ref double[] h)
+        {
+            mesh = GenerateGoodMesh(4096, Extent.DefaultExtent);
+            h = Add(mesh.Vxs.Length, Slope(mesh, RandomVector(4)),
+                Cone(mesh, Runif(-1, 1)),
+                Mountains(mesh, 50));
+            h = Peaky(h);
+            h = FillSinks(ref mesh, h);
+            h = SetSeaLevel(h, 0.5f);
+        }
 
-        public static List<List<Point>> Contour<T>(T instance, int level = 0) where T : IHasMesh, IHasHeights
+
+        public List<List<Point>> Contour(ref Mesh mesh, ref double[] heights, int level = 0)
         {
             var edges = new List<Point[]>();
-            for (var i = 0; i < instance.Mesh.Edges.Count; i++)
+            for (var i = 0; i < mesh.Edges.Count; i++)
             {
-                var e = instance.Mesh.Edges[i];
+                var e = mesh.Edges[i];
                 if (e.Right == null) continue;
-                if (IsNearEdge(instance.Mesh, e.Spot1) || IsNearEdge(instance.Mesh, e.Spot2)) continue;
-                if ((instance.Heights[e.Spot1] > level && instance.Heights[e.Spot2] <= level) || (instance.Heights[e.Spot2] > level && instance.Heights[e.Spot1] <= level))
+                if (IsNearEdge(mesh, e.Spot1) || IsNearEdge(mesh, e.Spot2)) continue;
+                if ((heights[e.Spot1] > level && heights[e.Spot2] <= level) || (heights[e.Spot2] > level && heights[e.Spot1] <= level))
                 {
                     edges.Add(new[] { e.Left, e.Right });
                 }
@@ -434,7 +378,7 @@ namespace WorldMap
             return MergeSegments(edges);
         }
 
-        public static bool IsNearEdge(Mesh mesh, int i)
+        public bool IsNearEdge(Mesh mesh, int i)
         {
             var x = mesh.Vxs[i].X;
             var y = mesh.Vxs[i].Y;
@@ -443,7 +387,7 @@ namespace WorldMap
             return x < -0.45f * w || x > 0.45f * w || y < -0.45f * h || y > 0.45f * h;
         }
 
-        public static List<List<Point>> MergeSegments(List<Point[]> segs)
+        public List<List<Point>> MergeSegments(List<Point[]> segs)
         {
             var adj = new Dictionary<Point, List<Point>>();
             for (var i = 0; i < segs.Count; i++)
@@ -522,19 +466,19 @@ namespace WorldMap
             return paths;
         }
 
-        public static double[] SetSeaLevel(double[] heights, double q)
+        public double[] SetSeaLevel(double[] heights, double q)
         {
             var output = new double[heights.Length];
-            var doubleHeights = heights.Select(h => (double)h);
-            var delta = doubleHeights.Quantile((double)q);
+            var doubleHeights = heights.Select(h => h);
+            var delta = doubleHeights.Quantile(q);
             for (var i = 0; i < heights.Length; i++)
             {
-                output[i] = heights[i] - (double)delta;
+                output[i] = heights[i] - delta;
             }
             return output.ToArray();
         }
 
-        public static double[] FillSinks(Mesh mesh, double[] heights, double epsilon = 1e-5f)
+        public double[] FillSinks(ref Mesh mesh, double[] heights, double epsilon = 1e-5f)
         {
             var infinity = int.MaxValue;
             var output = new double[heights.Length];
@@ -576,20 +520,20 @@ namespace WorldMap
             }
         }
 
-        public static double[] DoErosion(Mesh mesh, IHasDownhill downhillInstance, double[] heights, double amount, int n = 1)
+        public double[] DoErosion(ref Mesh mesh, ref int[] downhill, double[] heights, double amount, int n = 1)
         {
-            heights = Terrain.FillSinks(mesh, heights);
+            heights = FillSinks(ref mesh, heights);
             for (var i = 0; i < n; i++)
             {
-                heights = Terrain.Erode(mesh, downhillInstance, heights, amount);
-                heights = Terrain.FillSinks(mesh, heights);
+                heights = Erode(mesh, ref downhill, heights, amount);
+                heights = FillSinks(ref mesh, heights);
             }
             return heights;
         }
 
-        private static double[] Erode(Mesh mesh, IHasDownhill downhillInstance, double[] h, double amount)
+        private double[] Erode(Mesh mesh, ref int[] downhill, double[] h, double amount)
         {
-            var er = Terrain.ErosionRate(mesh, downhillInstance, h);
+            var er = ErosionRate(mesh, ref downhill, h);
             var output = new double[h.Length];
             var maxr = er.Max();
             for (var i = 0; i < h.Length; i++)
@@ -599,10 +543,10 @@ namespace WorldMap
             return output;
         }
 
-        public static double[] ErosionRate(Mesh mesh, IHasDownhill downhillInstance, double[] h)
+        public double[] ErosionRate(Mesh mesh, ref int[] downhill, double[] h)
         {
-            var flux = Terrain.GetFlux(mesh, downhillInstance, h);
-            var slope = Terrain.GetSlope(mesh, downhillInstance, h);
+            var flux = GetFlux(ref mesh, ref downhill, h);
+            var slope = GetSlope(mesh, h);
             var output = new double[h.Length];
             for (var i = 0; i < h.Length; i++)
             {
@@ -615,9 +559,9 @@ namespace WorldMap
             return output;
         }
 
-        private static double[] GetFlux(Mesh mesh, IHasDownhill downhillInstance, double[] h)
+        private double[] GetFlux(ref Mesh mesh, ref int[] downhill, double[] h)
         {
-            var dh = Terrain.Downhill(mesh, downhillInstance, h);
+            var dh = Downhill(mesh, ref downhill, h);
             var idxs = new List<int>();
             var output = new double[h.Length];
             for (var i = 0; i < h.Length; i++)
@@ -644,19 +588,19 @@ namespace WorldMap
             return output;
         }
 
-        private static double[] GetSlope(Mesh mesh, IHasDownhill downhillInstance, double[] h)
+        private double[] GetSlope(Mesh mesh, double[] h)
         {
             var output = new double[h.Length];
             for (var i = 0; i < h.Length; i++)
             {
-                var s = Terrain.Trislope(mesh, h, i);
+                var s = Trislope(mesh, h, i);
                 output[i] = (double)Math.Sqrt((double)(s.X * s.X + s.Y * s.Y));
             }
             return output;
         }
-        public static Point Trislope(Mesh mesh, double[] h, int i)
+        public Point Trislope(Mesh mesh, double[] h, int i)
         {
-            var nbs = Terrain.Neighbours(mesh, i);
+            var nbs = Neighbours(mesh, i);
             if (nbs.Count != 3) return Point.Zero;
             var p0 = mesh.Vxs[nbs[0]];
             var p1 = mesh.Vxs[nbs[1]];
@@ -674,21 +618,21 @@ namespace WorldMap
             return new Point((y2 * h1 - y1 * h2) / det, (-x2 * h1 + x1 * h2) / det);
         }
 
-        private static int[] Downhill(Mesh mesh, IHasDownhill downhillInstance, double[] h)
+        private int[] Downhill(Mesh mesh, ref int[] downhill, double[] h)
         {
-            if (downhillInstance.Downhill != null) return downhillInstance.Downhill;
+            if (downhill != null) return downhill;
 
             var downs = new int[h.Length];
             for (var i = 0; i < h.Length; i++)
             {
-                if (Terrain.Isedge(mesh, i))
+                if (Isedge(mesh, i))
                 {
                     downs[i] = -2;
                     continue;
                 }
                 var best = -1;
                 var besth = h[i];
-                var nbs = Terrain.Neighbours(mesh, i);
+                var nbs = Neighbours(mesh, i);
                 for (var j = 0; j < nbs.Count; j++)
                 {
                     if (h[nbs[j]] < besth)
@@ -699,16 +643,16 @@ namespace WorldMap
                 }
                 downs[i] = best;
             }
-            downhillInstance.Downhill = downs;
+            downhill = downs;
             return downs;
         }
 
-        private static bool Isedge(Mesh mesh, int i)
+        private bool Isedge(Mesh mesh, int i)
         {
             return (mesh.Adj[i].Count < 3);
         }
 
-        public static double[] CleanCoast(Mesh mesh, double[] h, int iters)
+        public double[] CleanCoast(Mesh mesh, double[] h, int iters)
         {
             for (var iter = 0; iter < iters; iter++)
             {
@@ -717,7 +661,7 @@ namespace WorldMap
                 for (var i = 0; i < h.Length; i++)
                 {
                     newh[i] = h[i];
-                    var nbs = Terrain.Neighbours(mesh, i);
+                    var nbs = Neighbours(mesh, i);
                     if (h[i] <= 0 || nbs.Count != 3) continue;
                     var count = 0;
                     double best = -double.MaxValue;
@@ -741,7 +685,7 @@ namespace WorldMap
                 for (var i = 0; i < h.Length; i++)
                 {
                     newh[i] = h[i];
-                    var nbs = Terrain.Neighbours(mesh, i);
+                    var nbs = Neighbours(mesh, i);
                     if (h[i] > 0 || nbs.Count != 3) continue;
                     var count = 0;
                     double best = double.MaxValue;
@@ -763,14 +707,12 @@ namespace WorldMap
             }
             return h;
         }
-        public static List<List<Point>> GetRivers<T>(T instance, double limit) where T : IHasMesh, IHasDownhill, IHasHeights
+        public List<List<Point>> GetRivers(ref Mesh mesh, ref int[] downhill, ref double[] h, double limit)
         {
-            var dh = Terrain.Downhill(instance.Mesh, instance, instance.Heights);
-            var flux = Terrain.GetFlux(instance.Mesh, instance, instance.Heights);
+            var dh = Downhill(mesh, ref downhill, h);
+            var flux = GetFlux(ref mesh, ref downhill, h);
             var links = new List<Point[]>();
             var above = 0;
-            var h = instance.Heights;
-            var mesh = instance.Mesh;
             for (var i = 0; i < h.Length; i++)
             {
                 if (h[i] > 0) above++;
@@ -802,7 +744,7 @@ namespace WorldMap
 
             return output;
         }
-        private static List<Point> RelaxPath(List<Point> path)
+        private List<Point> RelaxPath(List<Point> path)
         {
             var newpath = new List<Point>() { path[0] };
             for (var i = 1; i < path.Count - 1; i++)
@@ -815,27 +757,24 @@ namespace WorldMap
             newpath.Add(path[path.Count - 1]);
             return newpath;
         }
-        public static CityRender NewCityRender<T>(T instance, Extent extent) where T : IHasDownhill, IHasMesh, IHasHeights, IHasVoronoi
+        public CityRender NewCityRender(ref int[] downhill, ref Mesh mesh, ref double[] heights, Extent extent)
         {
-            instance.Heights = instance.Heights != null ? instance.Heights : GenerateCoast(instance, 4096, extent);
+            heights = heights != null ? heights : GenerateCoast(ref downhill, ref mesh, 4096, extent);
             return new CityRender()
             {
                 AreaProperties = new AreaProperties(),
                 Cities = new List<int>()
             };
         }
-        public static double[] CityScore<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
+        public double[] CityScore(ref List<int> cities, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var h = instance.Heights;
-            var mesh = instance.Mesh;
-            var cities = instance.CityRender.Cities;
-            var score = GetFlux(instance.Mesh, instance, h).ToList();
+            var score = GetFlux(ref mesh, ref downhill, h).ToList();
             for (var i = 0; i < score.Count; i++)
                 score[i] = Math.Sqrt(score[i]);
 
             for (var i = 0; i < h.Length; i++)
             {
-                if (h[i] <= 0 || Terrain.IsNearEdge(mesh, i))
+                if (h[i] <= 0 || IsNearEdge(mesh, i))
                 {
                     score[i] = -double.MaxValue;
                     continue;
@@ -846,18 +785,18 @@ namespace WorldMap
 
                 for (var j = 0; j < cities.Count; j++)
                 {
-                    score[i] -= 0.02d / (Terrain.Distance(mesh, cities[j], i) + 1e-9d);
+                    score[i] -= 0.02d / (Distance(mesh, cities[j], i) + 1e-9d);
                 }
             }
             return score.ToArray();
         }
-        private static double Distance(Mesh mesh, int i, int j)
+        private double Distance(Mesh mesh, int i, int j)
         {
             var p = mesh.Vxs[i];
             var q = mesh.Vxs[j];
-            return (double)Math.Sqrt((double)((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y)));
+            return Math.Sqrt((double)((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y)));
         }
-        public static int Penalty(PossibleLabelLocation label, Mesh mesh, List<PossibleLabelLocation> citylabels, List<int> cities, List<List<Point>>[] avoids)
+        public int Penalty(PossibleLabelLocation label, Mesh mesh, List<PossibleLabelLocation> citylabels, List<int> cities, List<List<Point>>[] avoids)
         {
             var pen = 0;
             if (label.X0 < -0.45d * mesh.Extent.Width) pen += 100;
@@ -900,7 +839,7 @@ namespace WorldMap
             }
             return pen;
         }
-        public static Point TerrCenter(Mesh mesh, double[] h, double[] terr, int city, bool landOnly)
+        public Point TerrCenter(Mesh mesh, double[] h, double[] terr, int city, bool landOnly)
         {
             var x = 0d;
             var y = 0d;
@@ -915,18 +854,15 @@ namespace WorldMap
             }
             return new Point(x / n, y / n);
         }
-        public static List<List<Point>> GetBorders<T>(T instance) where T : IHasMesh, IHasCityRender, IHasHeights
+        public List<List<Point>> GetBorders(ref Mesh mesh, ref CityRender cityRender, ref double[] h)
         {
-            var cityRender = instance.CityRender;
-            var mesh = instance.Mesh;
             var terr = cityRender.Territories;
-            var h = instance.Heights;
             var edges = new List<Point[]>();
             for (var i = 0; i < mesh.Edges.Count; i++)
             {
                 var e = mesh.Edges[i];
                 if (e.Right == null) continue;
-                if (Terrain.IsNearEdge(mesh, e.Spot1) || IsNearEdge(mesh, e.Spot2)) continue;
+                if (IsNearEdge(mesh, e.Spot1) || IsNearEdge(mesh, e.Spot2)) continue;
                 if (h[e.Spot1] < 0 || h[e.Spot2] < 0) continue;
                 if (terr[e.Spot1] != terr[e.Spot2])
                 {
@@ -941,29 +877,27 @@ namespace WorldMap
 
             return output;
         }
-        public static double[] GetTerritories<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
+        public double[] GetTerritories(ref CityRender cityRender, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var cityRender = instance.CityRender;
-            var h = instance.Heights;
             var cities = cityRender.Cities;
             var n = cityRender.AreaProperties.NumberOfTerritories;
             if (n > cities.Count) n = cities.Count;
-            var flux = Terrain.GetFlux(instance.Mesh, instance, h);
+            var flux = GetFlux(ref mesh, ref downhill, h);
             var territories = new double[h.Length];
-            var queue = new FastPriorityQueue<CityProperty>(100000000);//5 is made up number
-            float priority = 10;
+            var queue = new SimplePriorityQueue<CityProperty>();//5 is made up number
             for (var i = 0; i < n; i++)
             {
                 territories[cities[i]] = cities[i];
-                var nbs = Terrain.Neighbours(instance.Mesh, cities[i]);
+                var nbs = Neighbours(mesh, cities[i]);
                 for (var j = 0; j < nbs.Count; j++)
                 {
+                    var score = Weight(mesh, h, flux, cities[i], nbs[j]);
                     queue.Enqueue(new CityProperty()
                     {
-                        Score = Terrain.Weight(instance.Mesh, h, flux, cities[i], nbs[j]),
+                        Score = score,
                         City = cities[i],
                         Vx = nbs[j]
-                    }, priority);
+                    }, (float)score);
                 }
             }
             while (queue.Count > 0)
@@ -971,25 +905,26 @@ namespace WorldMap
                 var u = queue.Dequeue();
                 if (territories[u.Vx] != 0) continue;
                 territories[u.Vx] = u.City;
-                var nbs = Terrain.Neighbours(instance.Mesh, u.Vx);
+                var nbs = Neighbours(mesh, u.Vx);
                 for (var i = 0; i < nbs.Count; i++)
                 {
                     var v = nbs[i];
                     if (territories[v] != 0) continue;
-                    var newdist = Terrain.Weight(instance.Mesh, h, flux, u.Vx, v);
+                    var newdist = Weight(mesh, h, flux, u.Vx, v);
+                    var score = u.Score + newdist;
                     queue.Enqueue(new CityProperty()
                     {
-                        Score = u.Score + newdist,
+                        Score = score,
                         City = u.City,
                         Vx = v
-                    }, priority);
+                    }, (float)score);
                 }
             }
             return territories;
         }
-        private static double Weight(Mesh mesh, double[] h, double[] flux, int u, int v)
+        private double Weight(Mesh mesh, double[] h, double[] flux, int u, int v)
         {
-            var horiz = Terrain.Distance(mesh, u, v);
+            var horiz = Distance(mesh, u, v);
             var vert = h[v] - h[u];
             if (vert > 0) vert /= 10;
             var diff = 1f + 0.25f * (double)Math.Pow((double)(vert / horiz), 2);
@@ -998,9 +933,9 @@ namespace WorldMap
             if ((h[u] > 0) != (h[v] > 0)) return 1000f;
             return horiz * diff;
         }
-        public static void PlaceCity<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
+        public void PlaceCity(ref List<int> cities, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var score = Terrain.CityScore(instance);
+            var score = CityScore(ref cities, ref downhill, ref mesh, ref h);
             var newcity = -1;
             var highestScore = -1d;
             for (int i = 0; i < score.Length; i++)
@@ -1011,15 +946,17 @@ namespace WorldMap
                     newcity = i;
                 }
             }
-            instance.CityRender.Cities.Add(newcity);
+            cities.Add(newcity);
         }
-        public static void PlaceCities<T>(T instance) where T : IHasCityRender, IHasDownhill, IHasMesh, IHasHeights
+        public void PlaceCities(ref CityRender cityRender, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var n = instance.CityRender.AreaProperties.NumberOfCities;
+            var n = cityRender.AreaProperties.NumberOfCities;
+            var cities = cityRender.Cities;
             for (var i = 0; i < n; i++)
             {
-                Terrain.PlaceCity(instance);
+                PlaceCity(ref cities, ref downhill, ref mesh, ref h);
             }
+            cityRender.Cities = cities;
         }
     }
 }

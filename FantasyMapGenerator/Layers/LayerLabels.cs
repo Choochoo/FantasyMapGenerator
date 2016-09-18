@@ -1,10 +1,10 @@
 ﻿
-using D3Voronoi;
+using TerrainGenerator;
 using WorldMap.Layers.Interfaces;
 
 namespace WorldMap.Layers
 {
-    public class LayerLabels : IHasHeights, IHasMesh, IHasDownhill, IHasCityRender, IHasVoronoi
+    public class LayerLabels : IHasHeights, IHasMesh, IHasDownhill, IHasCityRender, IResetable
     {
         public static LayerLabels Instance
         {
@@ -31,7 +31,6 @@ namespace WorldMap.Layers
 
         public int[] Downhill { get; set; }
         public CityRender CityRender { get; set; }
-        public Voronoi Voronoi { get; set; }
 
         public void Reset()
         {
@@ -39,7 +38,6 @@ namespace WorldMap.Layers
             Heights = null;
             Downhill = null;
             CityRender = null;
-            Voronoi = null;
         }
     }
 

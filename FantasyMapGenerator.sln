@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language", "Language\Langua
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D3Voronoi", "D3Voronoi\D3Voronoi.csproj", "{907CDB58-93B6-452D-9260-A4EE3F824156}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainGenerator", "Terrain\TerrainGenerator.csproj", "{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -44,6 +46,14 @@ Global
 		{907CDB58-93B6-452D-9260-A4EE3F824156}.Release|Any CPU.Build.0 = Release|Any CPU
 		{907CDB58-93B6-452D-9260-A4EE3F824156}.Release|x64.ActiveCfg = Release|Any CPU
 		{907CDB58-93B6-452D-9260-A4EE3F824156}.Release|x64.Build.0 = Release|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Debug|x64.Build.0 = Debug|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Release|x64.ActiveCfg = Release|Any CPU
+		{7079CE66-E447-4673-8A5C-0BEB73C3D3D1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

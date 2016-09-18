@@ -1,5 +1,0 @@
-C:\Users\Jared\Documents\Visual Studio 2015\Projects\FantasyMapGenerator\D3Voronoi\bin\Debug\D3Voronoi.dll
-C:\Users\Jared\Documents\Visual Studio 2015\Projects\FantasyMapGenerator\D3Voronoi\bin\Debug\D3Voronoi.pdb
-C:\Users\Jared\Documents\Visual Studio 2015\Projects\FantasyMapGenerator\D3Voronoi\obj\Debug\D3Voronoi.dll
-C:\Users\Jared\Documents\Visual Studio 2015\Projects\FantasyMapGenerator\D3Voronoi\obj\Debug\D3Voronoi.pdb
-C:\Users\Jared\Documents\Visual Studio 2015\Projects\FantasyMapGenerator\D3Voronoi\obj\Debug\D3Voronoi.csprojResolveAssemblyReference.cache
