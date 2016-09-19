@@ -4,7 +4,12 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Text;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using D3Voronoi;
@@ -19,15 +24,18 @@ namespace WorldMap
     [Designer("System.Windows.Forms.Design.ParentControlDesigner, System.Design", typeof(IDesigner))]
     public class DrawPanel : Panel
     {
+        private Bitmap _drawnBitmap = new Bitmap(1000, 1000);
         private readonly Color _coastColor = Color.Black;
         private readonly Color _riverColor = Color.DarkBlue;
         private readonly Color _borderColor = Color.Red;
-        private readonly Color _slopeColor = Color.RosyBrown;
+        private readonly Color _slopeColor = Color.Black;
 
-        private readonly int _coastSize = 3;
+
+        private readonly int _coastSize = 4;
         private readonly int _riverSize = 2;
-        private readonly int _borderSize = 3;
+        private readonly int _borderSize = 5;
 
+        private PrivateFontCollection fantasyFont;
         private int[] _drawQueue;
         public int[] DrawQueue
         {
@@ -44,10 +52,11 @@ namespace WorldMap
         {
             get
             {
-                if (_terrain == null) _terrain = new Terrain(200);
                 return _terrain;
             }
         }
+
+
 
         private string[] _voronoiColors;
         public string[] VoronoiColors
@@ -77,7 +86,27 @@ namespace WorldMap
         public DrawPanel()
         {
             this.DoubleBuffered = true;
+
         }
+
+        public void Load()
+        {
+            byte[] myFont = Properties.Resources.RINGM;
+            using (var ms = new MemoryStream(myFont))
+            {
+                fantasyFont = new PrivateFontCollection();
+                var fontBytes = Properties.Resources.RINGM;
+                var fontData = Marshal.AllocCoTaskMem(fontBytes.Length);
+                Marshal.Copy(fontBytes, 0, fontData, fontBytes.Length);
+                fantasyFont.AddMemoryFont(fontData, fontBytes.Length);
+                Marshal.FreeCoTaskMem(fontData);
+            }
+        }
+        public void CreateTerrain(int seed)
+        {
+            _terrain = new Terrain(seed);
+        }
+
         public enum Visualize
         {
             //Step 1
@@ -127,127 +156,136 @@ namespace WorldMap
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-
-            foreach (var drawNum in DrawQueue)
+            using (Graphics g = Graphics.FromImage(_drawnBitmap))
             {
-                Mesh mesh;
-                double[] heights;
-                int[] downhill;
-                CityRender cityRender;
+                g.Clear(Color.White);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                switch (drawNum)
+
+
+
+                foreach (var drawNum in DrawQueue)
                 {
-                    //Step 1
-                    case (int)Visualize.LayerGridGenerateRandomPoints:
-                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts);
-                        break;
-                    case (int)Visualize.LayerGridImprovePoints:
-                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshPts);
-                        break;
-                        break;
-                    case (int)Visualize.LayerGridVoronoiCorners:
-                        VisualizePoints(e.Graphics, LayerGrid.Instance.MeshVxs);
-                        break;
-                    //Step 2
-                    case (int)Visualize.LayerOutlineReset:
-                        VisualizeVoronoi(e.Graphics, LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights, -1f, 1f);
-                        break;
-                    case (int)Visualize.LayerOutlineSlope:
-                    case (int)Visualize.LayerOutlineCone:
-                    case (int)Visualize.LayerOutlineInvertedCone:
-                    case (int)Visualize.LayerOutlineFiveBlobs:
-                    case (int)Visualize.LayerOutlineNormalizeHeightmap:
-                    case (int)Visualize.LayerOutlineRoundHills:
-                    case (int)Visualize.LayerOutlineRelax:
-                    case (int)Visualize.LayerOutlineSetSeaLevelToMedian:
-                        VisualizeVoronoi(e.Graphics, LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights, -1f, 1f);
-                        mesh = LayerOutline.Instance.Mesh;
-                        heights = LayerOutline.Instance.Heights;
-                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
-                        break;
-                    //Step 3
-                    case (int)Visualize.LayerErosionGenerateRandomHeightmap:
-                    case (int)Visualize.LayerErosionErode:
-                    case (int)Visualize.LayerErosionSetSeaLevelToMedian:
-                    case (int)Visualize.LayerErosionCleanCoastlines:
-                    case (int)Visualize.LayerErosionHideErosionRate:
-                        VisualizeVoronoi(e.Graphics, LayerErosion.Instance.Mesh, LayerErosion.Instance.Heights, 0f, 1f);
-                        mesh = LayerErosion.Instance.Mesh;
-                        heights = LayerErosion.Instance.Heights;
-                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
-                        break;
-                    case (int)Visualize.LayerErosionShowErosionRate:
-                        mesh = LayerErosion.Instance.Mesh;
-                        heights = LayerErosion.Instance.Heights;
-                        downhill = LayerErosion.Instance.Downhill;
-                        VisualizeVoronoi(e.Graphics, LayerErosion.Instance.Mesh, Terrain.ErosionRate(mesh, ref downhill, heights));
-                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
-                        break;
-                    //Step 4
-                    case (int)Visualize.LayerRenderingGenerateRandomHeightmap:
-                        VisualizeVoronoi(e.Graphics, LayerRendering.Instance.Mesh, LayerRendering.Instance.Heights, 0);
-                        break;
-                    case (int)Visualize.LayerRenderingShowCoastline:
-                        mesh = LayerRendering.Instance.Mesh;
-                        heights = LayerRendering.Instance.Heights;
-                        VisualizePaths(e.Graphics, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
-                        break;
-                    case (int)Visualize.LayerRenderingShowRivers:
-                        mesh = LayerRendering.Instance.Mesh;
-                        heights = LayerRendering.Instance.Heights;
-                        downhill = LayerRendering.Instance.Downhill;
-                        VisualizePaths(e.Graphics, Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d), _riverColor, _riverSize);
-                        break;
-                    case (int)Visualize.LayerRenderingShowSlopeShading:
-                        VisualizeSlopes(e.Graphics, LayerRendering.Instance.Mesh, LayerRendering.Instance.Heights);
-                        break;
-                    //Step 5
-                    case (int)Visualize.LayerCitiesViewTerritories:
-                    case (int)Visualize.LayerCitiesViewCities:
-                        var instance = LayerCities.Instance;
-                        if ((int)Visualize.LayerCitiesViewCities == drawNum)
-                        {
-                            var score = LayerCities.Instance.CityRender.Score;
-                            VisualizeVoronoi(e.Graphics, instance.Mesh, score, score.Max() - 0.5d);
-                        }
-                        else
-                        {
-                            VisualizeVoronoi(e.Graphics, instance.Mesh, instance.CityRender.Territories);
-                        }
-                        mesh = instance.Mesh;
-                        heights = instance.Heights;
-                        downhill = instance.Downhill;
-                        cityRender = instance.CityRender;
+                    Mesh mesh;
+                    double[] heights;
+                    int[] downhill;
+                    CityRender cityRender;
+                    switch (drawNum)
+                    {
+                        //Step 1
+                        case (int)Visualize.LayerGridGenerateRandomPoints:
+                            VisualizePoints(g, LayerGrid.Instance.MeshPts);
+                            break;
+                        case (int)Visualize.LayerGridImprovePoints:
+                            VisualizePoints(g, LayerGrid.Instance.MeshPts);
+                            break;
+                            break;
+                        case (int)Visualize.LayerGridVoronoiCorners:
+                            VisualizePoints(g, LayerGrid.Instance.MeshVxs);
+                            break;
+                        //Step 2
+                        case (int)Visualize.LayerOutlineReset:
+                            VisualizeVoronoi(g, LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights, -1f, 1f);
+                            break;
+                        case (int)Visualize.LayerOutlineSlope:
+                        case (int)Visualize.LayerOutlineCone:
+                        case (int)Visualize.LayerOutlineInvertedCone:
+                        case (int)Visualize.LayerOutlineFiveBlobs:
+                        case (int)Visualize.LayerOutlineNormalizeHeightmap:
+                        case (int)Visualize.LayerOutlineRoundHills:
+                        case (int)Visualize.LayerOutlineRelax:
+                        case (int)Visualize.LayerOutlineSetSeaLevelToMedian:
+                            VisualizeVoronoi(g, LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights, -1f, 1f);
+                            mesh = LayerOutline.Instance.Mesh;
+                            heights = LayerOutline.Instance.Heights;
+                            VisualizePaths(g, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
+                            break;
+                        //Step 3
+                        case (int)Visualize.LayerErosionGenerateRandomHeightmap:
+                        case (int)Visualize.LayerErosionErode:
+                        case (int)Visualize.LayerErosionSetSeaLevelToMedian:
+                        case (int)Visualize.LayerErosionCleanCoastlines:
+                        case (int)Visualize.LayerErosionHideErosionRate:
+                            VisualizeVoronoi(g, LayerErosion.Instance.Mesh, LayerErosion.Instance.Heights, 0f, 1f);
+                            mesh = LayerErosion.Instance.Mesh;
+                            heights = LayerErosion.Instance.Heights;
+                            VisualizePaths(g, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
+                            break;
+                        case (int)Visualize.LayerErosionShowErosionRate:
+                            mesh = LayerErosion.Instance.Mesh;
+                            heights = LayerErosion.Instance.Heights;
+                            downhill = LayerErosion.Instance.Downhill;
+                            VisualizeVoronoi(g, LayerErosion.Instance.Mesh, Terrain.ErosionRate(mesh, ref downhill, heights));
+                            VisualizePaths(g, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
+                            break;
+                        //Step 4
+                        case (int)Visualize.LayerRenderingGenerateRandomHeightmap:
+                            VisualizeVoronoi(g, LayerRendering.Instance.Mesh, LayerRendering.Instance.Heights, 0);
+                            break;
+                        case (int)Visualize.LayerRenderingShowCoastline:
+                            mesh = LayerRendering.Instance.Mesh;
+                            heights = LayerRendering.Instance.Heights;
+                            VisualizePaths(g, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
+                            break;
+                        case (int)Visualize.LayerRenderingShowRivers:
+                            mesh = LayerRendering.Instance.Mesh;
+                            heights = LayerRendering.Instance.Heights;
+                            downhill = LayerRendering.Instance.Downhill;
+                            VisualizePaths(g, Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d), _riverColor, _riverSize);
+                            break;
+                        case (int)Visualize.LayerRenderingShowSlopeShading:
+                            VisualizeSlopes(g, LayerRendering.Instance.Mesh, LayerRendering.Instance.Heights);
+                            break;
+                        //Step 5
+                        case (int)Visualize.LayerCitiesViewTerritories:
+                        case (int)Visualize.LayerCitiesViewCities:
+                            var instance = LayerCities.Instance;
+                            if ((int)Visualize.LayerCitiesViewCities == drawNum)
+                            {
+                                var score = LayerCities.Instance.CityRender.Score;
+                                VisualizeVoronoi(g, instance.Mesh, score, score.Max() - 0.5d);
+                            }
+                            else
+                            {
+                                VisualizeVoronoi(g, instance.Mesh, instance.CityRender.Territories);
+                            }
+                            mesh = instance.Mesh;
+                            heights = instance.Heights;
+                            downhill = instance.Downhill;
+                            cityRender = instance.CityRender;
 
-                        VisualizePaths(e.Graphics, _terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
-                        VisualizePaths(e.Graphics, _terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d), _riverColor, _riverSize);
-                        VisualizePaths(e.Graphics, _terrain.GetBorders(ref mesh, ref cityRender, ref heights), _borderColor, _borderSize);
-                        VisualizeSlopes(e.Graphics, instance.Mesh, instance.Heights);
-                        VisualizeCities(e.Graphics, instance.CityRender, instance.Mesh);
-                        break;
-                    case (int)Visualize.LayerLabelsDoMap:
-                        VisualizePaths(e.Graphics, LayerLabels.Instance.CityRender.Rivers, _riverColor, _riverSize);
-                        VisualizePaths(e.Graphics, LayerLabels.Instance.CityRender.Coasts, _coastColor, _coastSize);
-                        VisualizePaths(e.Graphics, LayerLabels.Instance.CityRender.Borders, _borderColor, _borderSize, true);
+                            VisualizePaths(g, Terrain.Contour(ref mesh, ref heights), _coastColor, _coastSize);
+                            VisualizePaths(g, Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d), _riverColor, _riverSize);
+                            VisualizePaths(g, Terrain.GetBorders(ref mesh, ref cityRender, ref heights), _borderColor, _borderSize);
+                            VisualizeSlopes(g, instance.Mesh, instance.Heights);
+                            VisualizeCities(g, instance.CityRender, instance.Mesh);
+                            break;
+                        case (int)Visualize.LayerLabelsDoMap:
+                            VisualizePaths(g, LayerLabels.Instance.CityRender.Rivers, Color.Black, _riverSize);
+                            VisualizePaths(g, LayerLabels.Instance.CityRender.Coasts, _coastColor, _coastSize);
+                            VisualizePaths(g, LayerLabels.Instance.CityRender.Borders, Color.Black, _borderSize, true);
 
-                        VisualizeSlopes(e.Graphics, LayerLabels.Instance.Mesh, LayerLabels.Instance.Heights);
-                        VisualizeCities(e.Graphics, LayerLabels.Instance.CityRender, LayerLabels.Instance.Mesh);
+                            VisualizeSlopes(g, LayerLabels.Instance.Mesh, LayerLabels.Instance.Heights);
+                            VisualizeCities(g, LayerLabels.Instance.CityRender, LayerLabels.Instance.Mesh);
 
-                        VisualizeLabels(e.Graphics, LayerLabels.Instance);
-                        break;
+                            VisualizeLabels(g, LayerLabels.Instance);
+                            break;
+                    }
                 }
+                e.Graphics.DrawImage(_drawnBitmap, new Rectangle(0, 0, this.Width, this.Height), 0, 0, _drawnBitmap.Width, _drawnBitmap.Height, GraphicsUnit.Pixel);
             }
         }
 
         private void VisualizePoints(Graphics g, Point[] points)
         {
-            var offsetHeight = (this.Height) / 2;
-            var offsetWidth = (this.Width) / 2;
+            var offsetHeight = (_drawnBitmap.Height) / 2;
+            var offsetWidth = (_drawnBitmap.Width) / 2;
             var radius = (float)(100d / Math.Sqrt(points.Length));
             var halfradius = radius / 2f;
             foreach (var point in points)
             {
-                g.FillEllipse(Brushes.Blue, (float)(point.X * this.Width + offsetWidth - halfradius), (float)(point.Y * this.Height + offsetHeight - halfradius), radius, radius);
+                g.FillEllipse(Brushes.Blue, (float)(point.X * _drawnBitmap.Width + offsetWidth - halfradius), (float)(point.Y * _drawnBitmap.Height + offsetHeight - halfradius), radius, radius);
             }
         }
 
@@ -256,18 +294,18 @@ namespace WorldMap
             var cities = cityRender.Cities;
             var n = cityRender.AreaProperties.NumberOfTerritories;
 
-            var multiplier = this.Width;
-            var offsetHeight = this.Height / 2;
-            var offsetWidth = this.Width / 2;
+            var multiplier = _drawnBitmap.Width;
+            var offsetHeight = _drawnBitmap.Height / 2;
+            var offsetWidth = _drawnBitmap.Width / 2;
             using (var brush = new SolidBrush(Color.White))
             {
-                using (var pen = new Pen(Color.Black, 2))
+                using (var pen = new Pen(Color.Black, 5))
                 {
                     for (int i = 0; i < cities.Count; i++)
                     {
                         var city = cities[i];
                         var vxs = mesh.Vxs[city];
-                        var r = i >= n ? 4 : 10;
+                        var r = i >= n ? 10 : 25;
                         g.FillEllipse(brush, (float)((vxs.X * multiplier) + offsetWidth), (float)((vxs.Y * multiplier) + offsetHeight), r, r);
                         g.DrawEllipse(pen, (float)((vxs.X * multiplier) + offsetWidth), (float)((vxs.Y * multiplier) + offsetHeight), r, r);
                     }
@@ -289,7 +327,7 @@ namespace WorldMap
                 for (var j = 0; j < nbs.Count; j++)
                 {
                     var slopes = Terrain.Trislope(mesh, h, nbs[j]);
-                    s += slopes.X / 10;
+                    s += slopes.X / 10d;
                     s2 += slopes.Y;
                 }
                 s /= nbs.Count;
@@ -329,9 +367,9 @@ namespace WorldMap
                 }
             }
 
-            var multiplier = this.Width;
-            var offsetHeight = this.Height / 2;
-            var offsetWidth = this.Width / 2;
+            var multiplier = _drawnBitmap.Width;
+            var offsetHeight = _drawnBitmap.Height / 2;
+            var offsetWidth = _drawnBitmap.Width / 2;
             using (var pen = new Pen(_slopeColor))
             {
                 var graphicsPath = new GraphicsPath();
@@ -362,12 +400,13 @@ namespace WorldMap
             if (isBorder)
             {
                 pen.DashCap = DashCap.Flat;
-                pen.DashPattern = new float[] { 3.0f, 6.0f };
+                pen.DashStyle = DashStyle.Dot;
+                //pen.DashPattern = new[] { 10f, 10f };
             }
             var graphicsPath = new GraphicsPath();
-            var multiplier = this.Width;
-            var offsetHeight = this.Height / 2;
-            var offsetWidth = this.Width / 2;
+            var multiplier = _drawnBitmap.Width;
+            var offsetHeight = _drawnBitmap.Height / 2;
+            var offsetWidth = _drawnBitmap.Width / 2;
 
             foreach (var path in paths)
             {
@@ -403,9 +442,9 @@ namespace WorldMap
             if (heights != null)
                 mappedVals = heights.Select(x => x > hi ? 1 : x < lo ? 0 : (x - lo) / (hi - lo)).ToArray();
 
-            var multiplier = this.Width;
-            var offsetHeight = this.Height / 2;
-            var offsetWidth = this.Width / 2;
+            var multiplier = _drawnBitmap.Width;
+            var offsetHeight = _drawnBitmap.Height / 2;
+            var offsetWidth = _drawnBitmap.Width / 2;
             for (int i = 0; i < mesh.Tris.Count; i++)
             {
                 using (var pen = new Pen(Color.Aqua))
@@ -444,7 +483,7 @@ namespace WorldMap
         public void GenerateVoronoi()
         {
             LayerOutline.Instance.Heights = null;
-            LayerOutline.Instance.Mesh = _terrain.GenerateGoodMesh(4096, Extent.DefaultExtent);
+            LayerOutline.Instance.Mesh = Terrain.GenerateGoodMesh(4096, Extent.DefaultExtent);
         }
 
         private void VisualizeLabels<T>(Graphics g, T instance) where T : IHasCityRender, IHasMesh, IHasHeights
@@ -468,25 +507,25 @@ namespace WorldMap
                 var size = i < nterrs
                     ? finalCityRender.AreaProperties.FontSizeCity
                     : finalCityRender.AreaProperties.FontSizeTown;
-                var sx = 0.65d * size / 1000d * text.Length;
-                var sy = size / 1000d;
+                var sx = 0.65d * (float)size / _drawnBitmap.Width * (float)text.Length;
+                var sy = size / (float)_drawnBitmap.Height;
                 var possibleLabels = new[]
                 {
                     new PossibleLabelLocation()
                     {
-                        X = x + 0.5*sy,
-                        Y = y - 0.30*sy,
+                        X = x + 1.1*sy,
+                        Y = y - 0.23*sy,
                         Align = PossibleLabelLocation.AlignLeft,
                         X0 = x + 0.7d*sy,
-                        Y0 = y - 0.6d*sy,
+                        Y0 = y - 0.3d*sy,
                         X1 = x + 0.7d*sy + sx,
                         Y1 = y + 0.6d*sy,
                         DebugIndex = 0
                     },
                     new PossibleLabelLocation()
                     {
-                        X = x - 0.5d*sy,
-                        Y = y - 0.6*sy,
+                        X = x + 1.1d*sy,
+                        Y = y - 0.23*sy,
                         Align = PossibleLabelLocation.AlignRight,
                         X0 = x - 0.9d*sy - sx,
                         Y0 = y - 0.7d*sy,
@@ -497,7 +536,7 @@ namespace WorldMap
                     new PossibleLabelLocation()
                     {
                         X = x,
-                        Y = y,
+                        Y = y - 0.8d *sy,
                         Align = PossibleLabelLocation.AlignCenter,
                         X0 = x - sx/2,
                         Y0 = y - 1.9d*sy,
@@ -507,8 +546,8 @@ namespace WorldMap
                     },
                     new PossibleLabelLocation()
                     {
-                        X = x + 0.4*sy,
-                        Y = y- 1.6*sy,
+                        X = x,
+                        Y = y+ 1.2*sy,
                         Align = PossibleLabelLocation.AlignCenter,
                         X0 = x - sx/2,
                         Y0 = y + 0.1d*sy,
@@ -531,10 +570,10 @@ namespace WorldMap
                 }
                 var label = possibleLabels[lowestIndex];
                 label.Text = text;
-                label.Size = (int)((size / 10d) * 5);
+                label.Size = (float)size / _drawnBitmap.Width;
                 citylabels.Add(label);
             }
-            DrawText(g, citylabels, false);
+            DrawText(g, citylabels);
 
             var reglabels = new List<PossibleLabelLocation>();
             for (var i = 0; i < nterrs; i++)
@@ -543,8 +582,8 @@ namespace WorldMap
                 var text = LanguageGenerator.MakeName(lang, "region");
                 var sy = finalCityRender.AreaProperties.FontSizeRegion / 1000d;
                 var sx = 0.6d * text.Length * sy;
-                var lc = _terrain.TerrCenter(mesh, h, terr, city, true);
-                var oc = _terrain.TerrCenter(mesh, h, terr, city, false);
+                var lc = Terrain.TerrCenter(mesh, h, terr, city, true);
+                var oc = Terrain.TerrCenter(mesh, h, terr, city, false);
                 var best = 0;
                 var bestscore = -double.MaxValue;
                 for (var j = 0; j < h.Length; j++)
@@ -598,20 +637,19 @@ namespace WorldMap
                     Text = text,
                     X = mesh.Vxs[best].X,
                     Y = mesh.Vxs[best].Y,
-                    Size = (int)(sy * 350),
+                    Size = sy,
                     Width = (int)sx
                 });
             }
-            DrawText(g, reglabels, true);
+            //DrawText(g, reglabels);
         }
 
-        private void DrawText(Graphics g, List<PossibleLabelLocation> labels, bool isBold)
+        private void DrawText(Graphics g, List<PossibleLabelLocation> labels)
         {
-            var multiplier = this.Width;
-            var offsetHeight = this.Height / 2;
-            var offsetWidth = this.Width / 2;
+            var multiplier = _drawnBitmap.Width;
+            var offsetHeight = _drawnBitmap.Height / 2;
+            var offsetWidth = _drawnBitmap.Width / 2;
             var textPath = new GraphicsPath();
-            var fontfamily = new FontFamily("Palatino Linotype");
 
 
             foreach (var label in labels)
@@ -630,7 +668,7 @@ namespace WorldMap
                         break;
                 }
                 var textPosition = new PointF((float)((label.X * multiplier) + offsetWidth), (float)((label.Y * multiplier) + offsetHeight));
-                textPath.AddString(label.Text, fontfamily, (int)(isBold ? FontStyle.Bold : FontStyle.Regular), g.DpiY * label.Size / 72, textPosition, sf);
+                textPath.AddString(label.Text, fantasyFont.Families[0], (int)FontStyle.Regular, (int)(label.Size * multiplier), textPosition, sf);
             }
 
             var textBrush = new SolidBrush(Color.Black);

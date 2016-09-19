@@ -1,6 +1,6 @@
 ﻿namespace WorldMap
 {
-    partial class Form1
+    partial class FantasyWorldGeneratorForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FantasyWorldGeneratorForm));
             this.erodeGenerateRandomHeightMap = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Grids = new System.Windows.Forms.TabPage();
@@ -62,6 +62,8 @@
             this.citiesGenerateRandomHeightmap = new System.Windows.Forms.Button();
             this.PlacingLabels = new System.Windows.Forms.TabPage();
             this.genHighResolutionMap = new System.Windows.Forms.Button();
+            this.seedStepper = new System.Windows.Forms.NumericUpDown();
+            this.seedLabel = new System.Windows.Forms.Label();
             this.paintPanel = new WorldMap.DrawPanel();
             this.tabControl1.SuspendLayout();
             this.Grids.SuspendLayout();
@@ -70,6 +72,7 @@
             this.renderingTerrain.SuspendLayout();
             this.CitiesBorders.SuspendLayout();
             this.PlacingLabels.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.seedStepper)).BeginInit();
             this.SuspendLayout();
             // 
             // erodeGenerateRandomHeightMap
@@ -165,6 +168,7 @@
             // setSeaLevelToMedian
             // 
             this.setSeaLevelToMedian.BackColor = System.Drawing.Color.White;
+            this.setSeaLevelToMedian.Enabled = false;
             this.setSeaLevelToMedian.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.setSeaLevelToMedian.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.setSeaLevelToMedian.ForeColor = System.Drawing.Color.Black;
@@ -179,6 +183,7 @@
             // invertedCone
             // 
             this.invertedCone.BackColor = System.Drawing.Color.White;
+            this.invertedCone.Enabled = false;
             this.invertedCone.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.invertedCone.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.invertedCone.ForeColor = System.Drawing.Color.Black;
@@ -193,6 +198,7 @@
             // cone
             // 
             this.cone.BackColor = System.Drawing.Color.White;
+            this.cone.Enabled = false;
             this.cone.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.cone.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cone.ForeColor = System.Drawing.Color.Black;
@@ -207,6 +213,7 @@
             // normalizeHeightmap
             // 
             this.normalizeHeightmap.BackColor = System.Drawing.Color.White;
+            this.normalizeHeightmap.Enabled = false;
             this.normalizeHeightmap.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.normalizeHeightmap.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.normalizeHeightmap.ForeColor = System.Drawing.Color.Black;
@@ -221,6 +228,7 @@
             // relax
             // 
             this.relax.BackColor = System.Drawing.Color.White;
+            this.relax.Enabled = false;
             this.relax.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.relax.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.relax.ForeColor = System.Drawing.Color.Black;
@@ -235,6 +243,7 @@
             // fiveBlobs
             // 
             this.fiveBlobs.BackColor = System.Drawing.Color.White;
+            this.fiveBlobs.Enabled = false;
             this.fiveBlobs.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.fiveBlobs.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.fiveBlobs.ForeColor = System.Drawing.Color.Black;
@@ -249,6 +258,7 @@
             // roundHills
             // 
             this.roundHills.BackColor = System.Drawing.Color.White;
+            this.roundHills.Enabled = false;
             this.roundHills.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.roundHills.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.roundHills.ForeColor = System.Drawing.Color.Black;
@@ -263,6 +273,7 @@
             // randomSlope
             // 
             this.randomSlope.BackColor = System.Drawing.Color.White;
+            this.randomSlope.Enabled = false;
             this.randomSlope.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.randomSlope.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.randomSlope.ForeColor = System.Drawing.Color.Black;
@@ -389,6 +400,7 @@
             // renderingHideHeightmap
             // 
             this.renderingHideHeightmap.BackColor = System.Drawing.Color.White;
+            this.renderingHideHeightmap.Enabled = false;
             this.renderingHideHeightmap.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.renderingHideHeightmap.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.renderingHideHeightmap.ForeColor = System.Drawing.Color.Black;
@@ -403,6 +415,7 @@
             // renderingShowSlopeShading
             // 
             this.renderingShowSlopeShading.BackColor = System.Drawing.Color.White;
+            this.renderingShowSlopeShading.Enabled = false;
             this.renderingShowSlopeShading.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.renderingShowSlopeShading.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.renderingShowSlopeShading.ForeColor = System.Drawing.Color.Black;
@@ -417,6 +430,7 @@
             // renderingShowRivers
             // 
             this.renderingShowRivers.BackColor = System.Drawing.Color.White;
+            this.renderingShowRivers.Enabled = false;
             this.renderingShowRivers.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.renderingShowRivers.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.renderingShowRivers.ForeColor = System.Drawing.Color.Black;
@@ -431,6 +445,7 @@
             // renderingShowCoastline
             // 
             this.renderingShowCoastline.BackColor = System.Drawing.Color.White;
+            this.renderingShowCoastline.Enabled = false;
             this.renderingShowCoastline.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.renderingShowCoastline.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.renderingShowCoastline.ForeColor = System.Drawing.Color.Black;
@@ -471,6 +486,7 @@
             // showTerritories
             // 
             this.showTerritories.BackColor = System.Drawing.Color.White;
+            this.showTerritories.Enabled = false;
             this.showTerritories.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.showTerritories.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.showTerritories.ForeColor = System.Drawing.Color.Black;
@@ -485,6 +501,7 @@
             // cityAddNew
             // 
             this.cityAddNew.BackColor = System.Drawing.Color.White;
+            this.cityAddNew.Enabled = false;
             this.cityAddNew.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
             this.cityAddNew.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cityAddNew.ForeColor = System.Drawing.Color.Black;
@@ -534,6 +551,35 @@
             this.genHighResolutionMap.UseVisualStyleBackColor = false;
             this.genHighResolutionMap.Click += new System.EventHandler(this.genHighResolutionMap_Click);
             // 
+            // seedStepper
+            // 
+            this.seedStepper.Location = new System.Drawing.Point(545, 11);
+            this.seedStepper.Maximum = new decimal(new int[] {
+            -159383553,
+            46653770,
+            5421,
+            0});
+            this.seedStepper.Name = "seedStepper";
+            this.seedStepper.Size = new System.Drawing.Size(90, 20);
+            this.seedStepper.TabIndex = 14;
+            this.seedStepper.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.seedStepper.Value = new decimal(new int[] {
+            1337,
+            0,
+            0,
+            0});
+            this.seedStepper.KeyDown += new System.Windows.Forms.KeyEventHandler(this.numericUpDown1_KeyDown);
+            // 
+            // seedLabel
+            // 
+            this.seedLabel.AutoSize = true;
+            this.seedLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.seedLabel.Location = new System.Drawing.Point(504, 12);
+            this.seedLabel.Name = "seedLabel";
+            this.seedLabel.Size = new System.Drawing.Size(41, 17);
+            this.seedLabel.TabIndex = 14;
+            this.seedLabel.Text = "Seed";
+            // 
             // paintPanel
             // 
             this.paintPanel.DrawQueue = null;
@@ -542,16 +588,19 @@
             this.paintPanel.Size = new System.Drawing.Size(640, 640);
             this.paintPanel.TabIndex = 3;
             // 
-            // Form1
+            // FantasyWorldGeneratorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(677, 793);
+            this.Controls.Add(this.seedLabel);
+            this.Controls.Add(this.seedStepper);
             this.Controls.Add(this.paintPanel);
             this.Controls.Add(this.tabControl1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
+            this.Name = "FantasyWorldGeneratorForm";
             this.Text = "Fantasy World Generator";
+            this.Load += new System.EventHandler(this.FantasyWorldGeneratorForm_Load);
             this.tabControl1.ResumeLayout(false);
             this.Grids.ResumeLayout(false);
             this.RoughOutlines.ResumeLayout(false);
@@ -559,7 +608,9 @@
             this.renderingTerrain.ResumeLayout(false);
             this.CitiesBorders.ResumeLayout(false);
             this.PlacingLabels.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.seedStepper)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -599,6 +650,8 @@
         private System.Windows.Forms.Button citiesGenerateRandomHeightmap;
         private System.Windows.Forms.Button genHighResolutionMap;
         private DrawPanel paintPanel;
+        private System.Windows.Forms.NumericUpDown seedStepper;
+        private System.Windows.Forms.Label seedLabel;
     }
 }
 

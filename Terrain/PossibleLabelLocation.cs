@@ -13,7 +13,7 @@
         public double X1;
         public double Y1;
         public string Text;
-        public int Size;
+        public double Size;
         public int Width;
         public int DebugIndex;
     }

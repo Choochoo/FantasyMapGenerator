@@ -2,7 +2,7 @@
 {
     public class AreaProperties
     {
-        public int NumberOfPoints = 16384;
+        public int NumberOfPoints = 4096;
         public int NumberOfCities = 15;
         public int NumberOfTerritories = 5;
         public int FontSizeRegion = 40;

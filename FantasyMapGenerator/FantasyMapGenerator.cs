@@ -8,11 +8,16 @@ using WorldMap.Layers;
 
 namespace WorldMap
 {
-    public partial class Form1 : Form
+    public partial class FantasyWorldGeneratorForm : Form
     {
-        public Form1()
+        public FantasyWorldGeneratorForm()
         {
             InitializeComponent();
+            paintPanel.CreateTerrain((int)seedStepper.Value);
+        }
+        private void FantasyWorldGeneratorForm_Load(object sender, EventArgs e)
+        {
+            paintPanel.Load();
         }
 
         private void generateRandomPoints_Click(object sender, EventArgs e)
@@ -54,6 +59,7 @@ namespace WorldMap
         private void reset_Click(object sender, EventArgs e)
         {
             paintPanel.GenerateVoronoi();
+            randomSlope.Enabled = cone.Enabled = invertedCone.Enabled = fiveBlobs.Enabled = normalizeHeightmap.Enabled = roundHills.Enabled = relax.Enabled = setSeaLevelToMedian.Enabled = true;
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerOutlineReset };
         }
 
@@ -110,6 +116,7 @@ namespace WorldMap
         {
             var mesh = LayerErosion.Instance.Mesh;
             var heights = LayerErosion.Instance.Heights;
+            erode.Enabled = erodeSeaLeveltoMedian.Enabled = cleanCoastlines.Enabled = showErosionRate.Enabled = true;
 
             paintPanel.Terrain.GenerateUneroded(ref mesh, ref heights);
 
@@ -185,6 +192,7 @@ namespace WorldMap
 
         private void renderingGenerateRandomHeightmap_Click(object sender, EventArgs e)
         {
+            renderingShowCoastline.Enabled = renderingShowRivers.Enabled = renderingShowSlopeShading.Enabled = renderingHideHeightmap.Enabled = true;
             var instance = LayerRendering.Instance;
             var downhill = instance.Downhill;
             var mesh = instance.Mesh;
@@ -214,6 +222,7 @@ namespace WorldMap
         }
         private void citiesGenerateRandomHeightmap_Click(object sender, EventArgs e)
         {
+            cityAddNew.Enabled = showTerritories.Enabled = true;
             var instance = LayerCities.Instance;
             var downhill = instance.Downhill;
             var mesh = instance.Mesh;
@@ -310,5 +319,14 @@ namespace WorldMap
 
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerLabelsDoMap };
         }
+
+        private void numericUpDown1_KeyDown(object sender, KeyEventArgs e)
+        {
+            var seed = (int)seedStepper.Value;
+            seed = seed < 0 ? -seed : seed;
+            paintPanel.CreateTerrain(seed);
+        }
+
+
     }
 }
