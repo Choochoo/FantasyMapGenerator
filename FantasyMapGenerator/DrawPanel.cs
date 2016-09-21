@@ -306,8 +306,9 @@ namespace WorldMap
                         var city = cities[i];
                         var vxs = mesh.Vxs[city];
                         var r = i >= n ? 10 : 25;
-                        g.FillEllipse(brush, (float)((vxs.X * multiplier) + offsetWidth), (float)((vxs.Y * multiplier) + offsetHeight), r, r);
-                        g.DrawEllipse(pen, (float)((vxs.X * multiplier) + offsetWidth), (float)((vxs.Y * multiplier) + offsetHeight), r, r);
+                        var halfr = r / 2f;
+                        g.FillEllipse(brush, (float)((vxs.X * multiplier) + offsetWidth) - halfr, (float)((vxs.Y * multiplier) + offsetHeight) - halfr, r, r);
+                        g.DrawEllipse(pen, (float)((vxs.X * multiplier) + offsetWidth) - halfr, (float)((vxs.Y * multiplier) + offsetHeight) - halfr, r, r);
                     }
                 }
             }
@@ -513,8 +514,8 @@ namespace WorldMap
                 {
                     new PossibleLabelLocation()
                     {
-                        X = x + 1.1*sy,
-                        Y = y - 0.23*sy,
+                        X = x + .8*sy,
+                        Y = y - 0.625*sy,
                         Align = PossibleLabelLocation.AlignLeft,
                         X0 = x + 0.7d*sy,
                         Y0 = y - 0.3d*sy,
@@ -524,8 +525,8 @@ namespace WorldMap
                     },
                     new PossibleLabelLocation()
                     {
-                        X = x + 1.1d*sy,
-                        Y = y - 0.23*sy,
+                        X = x - 0.85d*sy,
+                        Y = y - 0.55*sy,
                         Align = PossibleLabelLocation.AlignRight,
                         X0 = x - 0.9d*sy - sx,
                         Y0 = y - 0.7d*sy,
@@ -536,7 +537,7 @@ namespace WorldMap
                     new PossibleLabelLocation()
                     {
                         X = x,
-                        Y = y - 0.8d *sy,
+                        Y = y - 1.9d *sy,
                         Align = PossibleLabelLocation.AlignCenter,
                         X0 = x - sx/2,
                         Y0 = y - 1.9d*sy,
@@ -547,7 +548,7 @@ namespace WorldMap
                     new PossibleLabelLocation()
                     {
                         X = x,
-                        Y = y+ 1.2*sy,
+                        Y = y+ 1*sy,
                         Align = PossibleLabelLocation.AlignCenter,
                         X0 = x - sx/2,
                         Y0 = y + 0.1d*sy,
@@ -573,7 +574,7 @@ namespace WorldMap
                 label.Size = (float)size / _drawnBitmap.Width;
                 citylabels.Add(label);
             }
-            DrawText(g, citylabels);
+            DrawText(g, citylabels, true);
 
             var reglabels = new List<PossibleLabelLocation>();
             for (var i = 0; i < nterrs; i++)
@@ -641,10 +642,10 @@ namespace WorldMap
                     Width = (int)sx
                 });
             }
-            //DrawText(g, reglabels);
+            DrawText(g, reglabels);
         }
 
-        private void DrawText(Graphics g, List<PossibleLabelLocation> labels)
+        private void DrawText(Graphics g, List<PossibleLabelLocation> labels, bool drawRects = false)
         {
             var multiplier = _drawnBitmap.Width;
             var offsetHeight = _drawnBitmap.Height / 2;
@@ -668,6 +669,16 @@ namespace WorldMap
                         break;
                 }
                 var textPosition = new PointF((float)((label.X * multiplier) + offsetWidth), (float)((label.Y * multiplier) + offsetHeight));
+                if (drawRects && label.Text == "Saarn")
+                {
+                    var newRect = new RectangleF((float)((label.X0 * multiplier) + offsetWidth), (float)((label.Y0 * multiplier) + offsetHeight), (float)((label.X1 * multiplier) + offsetWidth), (float)((label.Y1 * multiplier) + offsetHeight));
+                    textPath.AddRectangle(newRect);
+                }
+                if (drawRects && label.Text == "Ilt-Iinsal")
+                {
+                    var newRect = new RectangleF((float)((label.X0 * multiplier) + offsetWidth), (float)((label.Y0 * multiplier) + offsetHeight), (float)((label.X1 * multiplier) + offsetWidth), (float)((label.Y1 * multiplier) + offsetHeight));
+                    textPath.AddRectangle(newRect);
+                }
                 textPath.AddString(label.Text, fantasyFont.Families[0], (int)FontStyle.Regular, (int)(label.Size * multiplier), textPosition, sf);
             }
 
