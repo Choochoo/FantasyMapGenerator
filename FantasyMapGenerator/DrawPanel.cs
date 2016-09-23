@@ -536,7 +536,7 @@ namespace WorldMap
                     {
                         X = x,
                         Y = y - 0.8*sy,
-                        Align = PossibleLabelLocation.AlignCenter,
+                        Align = PossibleLabelLocation.AlignCenterBottom,
                         X0 = x - sx/2,
                         Y0 = y - 1.9*sy,
                         X1 = x + sx/2,
@@ -547,7 +547,7 @@ namespace WorldMap
                     {
                         X = x,
                         Y = y + 1.2*sy,
-                        Align = PossibleLabelLocation.AlignCenter,
+                        Align = PossibleLabelLocation.AlignCenterTop,
                         X0 = x - sx/2,
                         Y0 = y + 0.1*sy,
                         X1 = x + sx/2,
@@ -641,7 +641,7 @@ namespace WorldMap
             DrawText(g, reglabels);
         }
 
-        private void DrawText(Graphics g, List<PossibleLabelLocation> labels, bool drawRects = false)
+        private void DrawText(Graphics g, List<PossibleLabelLocation> labels, bool isCities = false)
         {
             var multiplier = _drawnBitmap.Width;
             var offsetHeight = _drawnBitmap.Height / 2;
@@ -653,7 +653,7 @@ namespace WorldMap
             {
                 var sf = new StringFormat()
                 {
-                    LineAlignment = StringAlignment.Center
+                    LineAlignment = isCities ? StringAlignment.Center : StringAlignment.Far
                 };
                 switch (label.Align)
                 {
@@ -671,7 +671,13 @@ namespace WorldMap
                 var textSize = g.MeasureString(label.Text, new Font(fantasyFont.Families[0], fontSize));
 
                 var textPosition = new PointF((float)((label.X * multiplier) + offsetWidth), (float)((label.Y * multiplier) + offsetHeight));
-                textPosition.Y -= textSize.Height * .1f;
+
+                if (isCities && label.Align != PossibleLabelLocation.AlignCenterTop)
+                    textPosition.Y -= textSize.Height * .1f;
+                else if (!isCities)
+                {
+                    textPosition.Y += textSize.Height * .2f;
+                }
                 textPath.AddString(label.Text, fantasyFont.Families[0], (int)FontStyle.Regular, fontSize, textPosition, sf);
             }
 
@@ -684,6 +690,7 @@ namespace WorldMap
             g.FillPath(textOutlineFill, textPath);
             g.FillPath(textBrush, textPath);
 
+            /*
             using (var pen = new Pen(Color.IndianRed))
             {
                 for (var i = 50; i < _drawnBitmap.Width; i += 50)
@@ -692,6 +699,7 @@ namespace WorldMap
                     g.DrawLine(pen, 0, i, _drawnBitmap.Width, i);
                 }
             }
+            */
 
             textBrush.Dispose();
             textOutline.Dispose();

@@ -22,7 +22,7 @@ namespace WorldMap
 
         private void generateRandomPoints_Click(object sender, EventArgs e)
         {
-            LayerGrid.Instance.MeshPts = paintPanel.Terrain.GeneratePoints(10, Extent.DefaultExtent);
+            LayerGrid.Instance.MeshPts = paintPanel.Terrain.GeneratePoints(256, Extent.DefaultExtent);
             improvePoints.Enabled = showOriginalPoints.Enabled = true;
             paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerGridGenerateRandomPoints };
         }

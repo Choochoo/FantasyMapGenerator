@@ -4,7 +4,8 @@
     {
         public const string AlignLeft = "start";
         public const string AlignRight = "end";
-        public const string AlignCenter = "middle";
+        public const string AlignCenterTop = "middletop";
+        public const string AlignCenterBottom = "middlebottom";
         public double X;
         public double Y;
         public string Align;

@@ -6,55 +6,36 @@ Generator your own Fantasy Map!
 
 A step by step series of examples that tell you have to get a development env running
 
-Random Points (Based on 256 points)
-```
+#Random Points (Based on 256 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/randompoints.png)
-```
 
-Converted to Voronoi Points (Based on 256 points)
-```
+
+#Converted to Voronoi Points (Based on 256 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/voronoipoints.png)
-```
 
-Generated into a mesh  (Based on 4096 points)
-```
+#Generated into a mesh  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/meshoutline.png)
-```
 
-Giving the mesh a slope  (Based on 4096 points)
-```
+#Giving the mesh a slope  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/meshslope.png)
-```
 
-Setting the coast based off of heights  (Based on 4096 points)
-```
+#Setting the coast based off of heights  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/erosionheightmap.png)
-```
 
-Giving it some erosion  (Based on 4096 points)
-```
+#Giving it some erosion  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/erosionwitherosion.png)
-```
 
-Showing rivers, mountains and coast  (Based on 4096 points)
-```
+#Showing rivers, mountains and coast  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/riversmountains.png)
-```
 
-Showing cities with red region borders  (Based on 4096 points)
-```
+#Showing cities with red region borders  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/cities.png)
-```
 
-Showing colored regions with cities as dots.  (Based on 4096 points)
-```
+#Showing colored regions with cities as dots.  (Based on 4096 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/territories.png)
-```
 
-Showing fantasy map final result!  (Based on 16384 points)
-```
+#Showing fantasy map final result!  (Based on 16384 points)
 ![alt tag](http://jarednbrowne.com/GitHubImages/finalresult.png)
-```
 
 ## Running the tests
 
