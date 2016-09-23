@@ -86,7 +86,6 @@ namespace WorldMap
         public DrawPanel()
         {
             this.DoubleBuffered = true;
-
         }
 
         public void Load()
@@ -402,7 +401,6 @@ namespace WorldMap
             {
                 pen.DashCap = DashCap.Flat;
                 pen.DashStyle = DashStyle.Dot;
-                //pen.DashPattern = new[] { 10f, 10f };
             }
             var graphicsPath = new GraphicsPath();
             var multiplier = _drawnBitmap.Width;
@@ -514,46 +512,46 @@ namespace WorldMap
                 {
                     new PossibleLabelLocation()
                     {
-                        X = x + .8*sy,
-                        Y = y - 0.625*sy,
+                        X = x + 0.8*sy,
+                        Y = y + 0.3*sy,
                         Align = PossibleLabelLocation.AlignLeft,
-                        X0 = x + 0.7d*sy,
-                        Y0 = y - 0.3d*sy,
-                        X1 = x + 0.7d*sy + sx,
-                        Y1 = y + 0.6d*sy,
+                        X0 = x + 0.7*sy,
+                        Y0 = y - 0.6*sy,
+                        X1 = x + 0.7*sy + sx,
+                        Y1 = y + 0.6*sy,
                         DebugIndex = 0
                     },
                     new PossibleLabelLocation()
                     {
-                        X = x - 0.85d*sy,
-                        Y = y - 0.55*sy,
+                        X = x - 0.8*sy,
+                        Y = y + 0.3*sy,
                         Align = PossibleLabelLocation.AlignRight,
-                        X0 = x - 0.9d*sy - sx,
-                        Y0 = y - 0.7d*sy,
-                        X1 = x - 0.9d*sy,
-                        Y1 = y + 0.7d*sy,
+                        X0 = x - 0.9*sy - sx,
+                        Y0 = y - 0.7*sy,
+                        X1 = x - 0.9*sy,
+                        Y1 = y + 0.7*sy,
                         DebugIndex = 1
                     },
                     new PossibleLabelLocation()
                     {
                         X = x,
-                        Y = y - 1.9d *sy,
+                        Y = y - 0.8*sy,
                         Align = PossibleLabelLocation.AlignCenter,
                         X0 = x - sx/2,
-                        Y0 = y - 1.9d*sy,
+                        Y0 = y - 1.9*sy,
                         X1 = x + sx/2,
-                        Y1 = y - 0.7d*sy,
+                        Y1 = y - 0.7*sy,
                         DebugIndex = 2
                     },
                     new PossibleLabelLocation()
                     {
                         X = x,
-                        Y = y+ 1*sy,
+                        Y = y + 1.2*sy,
                         Align = PossibleLabelLocation.AlignCenter,
                         X0 = x - sx/2,
-                        Y0 = y + 0.1d*sy,
+                        Y0 = y + 0.1*sy,
                         X1 = x + sx/2,
-                        Y1 = y + 1.3d*sy,
+                        Y1 = y + 1.3*sy,
                         DebugIndex = 3
                     }
                 };
@@ -571,7 +569,7 @@ namespace WorldMap
                 }
                 var label = possibleLabels[lowestIndex];
                 label.Text = text;
-                label.Size = (float)size / _drawnBitmap.Width;
+                label.Size = (float)size / 1000f;
                 citylabels.Add(label);
             }
             DrawText(g, citylabels, true);
@@ -581,7 +579,7 @@ namespace WorldMap
             {
                 var city = cities[i];
                 var text = LanguageGenerator.MakeName(lang, "region");
-                var sy = finalCityRender.AreaProperties.FontSizeRegion / 1000d;
+                var sy = finalCityRender.AreaProperties.FontSizeRegion / (float)_drawnBitmap.Height;
                 var sx = 0.6d * text.Length * sy;
                 var lc = Terrain.TerrCenter(mesh, h, terr, city, true);
                 var oc = Terrain.TerrCenter(mesh, h, terr, city, false);
@@ -598,7 +596,7 @@ namespace WorldMap
                     {
                         var u = mesh.Vxs[cities[k]];
                         if (Math.Abs(v.X - u.X) < sx &&
-                            Math.Abs(v.X - sy / 2 - u.Y) < sy)
+                            Math.Abs(v.Y - sy / 2 - u.Y) < sy)
                         {
                             score -= k < nterrs ? 4000 : 500;
                         }
@@ -615,9 +613,7 @@ namespace WorldMap
                         var label = reglabels[k];
                         if (v.X - sx / 2 < label.X + label.Width / 2d &&
                             v.X + sx / 2 > label.X - label.Width / 2d &&
-                            v.Y - sy < label.Y &&
-
-                            v.Y > label.Y - label.Size)
+                            v.Y - sy < label.Y && v.Y > label.Y - label.Size)
                         {
                             score -= 20000;
                         }
@@ -655,43 +651,47 @@ namespace WorldMap
 
             foreach (var label in labels)
             {
-                var sf = new StringFormat();
+                var sf = new StringFormat()
+                {
+                    LineAlignment = StringAlignment.Center
+                };
                 switch (label.Align)
                 {
                     case PossibleLabelLocation.AlignRight:
                         sf.Alignment = StringAlignment.Far;
                         break;
-                    case PossibleLabelLocation.AlignCenter:
-                        sf.Alignment = StringAlignment.Center;
-                        break;
                     case PossibleLabelLocation.AlignLeft:
                         sf.Alignment = StringAlignment.Near;
                         break;
+                    default:
+                        sf.Alignment = StringAlignment.Center;
+                        break;
                 }
+                var fontSize = (int)(label.Size * multiplier);
+                var textSize = g.MeasureString(label.Text, new Font(fantasyFont.Families[0], fontSize));
+
                 var textPosition = new PointF((float)((label.X * multiplier) + offsetWidth), (float)((label.Y * multiplier) + offsetHeight));
-                if (drawRects && label.Text == "Saarn")
-                {
-                    var newRect = new RectangleF((float)((label.X0 * multiplier) + offsetWidth), (float)((label.Y0 * multiplier) + offsetHeight), (float)((label.X1 * multiplier) + offsetWidth), (float)((label.Y1 * multiplier) + offsetHeight));
-                    textPath.AddRectangle(newRect);
-                }
-                if (drawRects && label.Text == "Ilt-Iinsal")
-                {
-                    var newRect = new RectangleF((float)((label.X0 * multiplier) + offsetWidth), (float)((label.Y0 * multiplier) + offsetHeight), (float)((label.X1 * multiplier) + offsetWidth), (float)((label.Y1 * multiplier) + offsetHeight));
-                    textPath.AddRectangle(newRect);
-                }
-                textPath.AddString(label.Text, fantasyFont.Families[0], (int)FontStyle.Regular, (int)(label.Size * multiplier), textPosition, sf);
+                textPosition.Y -= textSize.Height * .1f;
+                textPath.AddString(label.Text, fantasyFont.Families[0], (int)FontStyle.Regular, fontSize, textPosition, sf);
             }
 
             var textBrush = new SolidBrush(Color.Black);
-
             var textOutline = new Pen(Color.White, 5);
             var textOutlineFill = new SolidBrush(Color.White);
 
 
             g.DrawPath(textOutline, textPath);
             g.FillPath(textOutlineFill, textPath);
-
             g.FillPath(textBrush, textPath);
+
+            using (var pen = new Pen(Color.IndianRed))
+            {
+                for (var i = 50; i < _drawnBitmap.Width; i += 50)
+                {
+                    g.DrawLine(pen, i, 0, i, _drawnBitmap.Height);
+                    g.DrawLine(pen, 0, i, _drawnBitmap.Width, i);
+                }
+            }
 
             textBrush.Dispose();
             textOutline.Dispose();
