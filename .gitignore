@@ -9,3 +9,8 @@ FantasyMapGenerator/obj/
 D3Voronoi/obj/
 Terrain/obj/
 D3Voronoi/bin/
+.vs/
+packages/
+Terrain/bin/
+Delaunay/obj/Release/Delaunay.csproj.FileListAbsolute.txt
+Delaunay/obj/Debug/Delaunay.csproj.FileListAbsolute.txt
