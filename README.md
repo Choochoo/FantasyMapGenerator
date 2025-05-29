@@ -1,71 +1,74 @@
-# FantasyMapGenerator
-Generator your own Fantasy Map!
+# Fantasy Map Generator
 
+Generate your own beautiful, procedural fantasy maps!
 
-## How to generate
+## Overview
+Fantasy Map Generator is a C# application that procedurally generates detailed fantasy maps using Voronoi diagrams, mesh generation, and terrain algorithms. Inspired by the work of [mewo2](https://github.com/mewo2/terrain) and [d3](https://github.com/d3/d3), this project brings advanced map generation to the .NET ecosystem.
 
-A step by step series of examples that tell you have to get a development env running
+## Features
+- Procedural map generation with customizable point counts
+- Voronoi-based region creation
+- Mesh and terrain generation with slopes, coasts, and erosion
+- Rivers, mountains, and city placement
+- Region coloring and final fantasy map rendering
 
-###Random Points (Based on 256 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/randompoints.png)
+## Installation
+1. Clone this repository:
+   ```sh
+   git clone https://github.com/yourusername/FantasyMapGenerator.git
+   ```
+2. Open the solution in Visual Studio 2022 or later.
+3. Restore NuGet packages and build the solution.
 
+## Usage
+- Run the application from Visual Studio or execute the built binary from the `bin/Debug/net9.0-windows/` directory.
+- Follow the on-screen instructions to generate and customize your map.
 
-###Converted to Voronoi Points (Based on 256 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/voronoipoints.png)
+## Visual Walkthrough
+Below is a step-by-step visual guide to the map generation process:
 
-###Generated into a mesh  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/meshoutline.png)
+### 1. Random Points (256 points)
+![Random Points](images/randompoints.png)
 
-###Giving the mesh a slope  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/meshslope.png)
+### 2. Converted to Voronoi Points (256 points)
+![Voronoi Points](images/voronoipoints.png)
 
-###Setting the coast based off of heights  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/erosionheightmap.png)
+### 3. Generated Mesh Outline (4096 points)
+![Mesh Outline](images/generatedmesh.png)
 
-###Giving it some erosion  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/erosionwitherosion.png)
+### 4. Mesh with Slope (4096 points)
+![Mesh Slope](images/meshslope.png)
 
-###Showing rivers, mountains and coast  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/riversmountains.png)
+### 5. Coastline Based on Heights (4096 points)
+![Coastline by Height](images/normalizeheights.png)
 
-###Showing cities with red region borders  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/cities.png)
+### 6. Erosion Applied (4096 points)
+![Erosion](images/rivermountsinscoasts.png)
 
-###Showing colored regions with cities as dots.  (Based on 4096 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/territories.png)
+### 7. Rivers, Mountains, and Coasts (4096 points)
+![Rivers, Mountains, and Coasts](images/rivermountsinscoasts.png)
 
-###Showing fantasy map final result!  (Based on 16384 points)
-![alt tag](http://jarednbrowne.com/GitHubImages/finalresult.png)
+### 8. Cities with Red Region Borders (4096 points)
+![Cities and Regions](images/citiesredregion.png)
 
-## Running the tests
+### 9. Colored Regions with Cities as Dots (4096 points)
+![Colored Regions](images/coloredregionswithdots.png)
 
-No tests would be a nice feature.
+### 10. Final Fantasy Map Result (16384 points)
+![Final Result](images/finalresults.png)
 
-## Performance Optimization.
-
-Currently this is a (nearly)straight conversion of d3 and http://mewo2.com/ map generator, adding priority queues and splitting tasks for multi threading would speed this up a bit.
-
-
-## Built With
-
-* Terrain by https://github.com/mewo2/terrain
-* Language gen by https://github.com/mewo2/naming-language/
-* D3 to C# converted from here: https://github.com/d3/d3
-* MathNet https://github.com/mathnet/mathnet-numerics
-* Fantasy Font: Ringbearer
-
-## Authors
-
-* **Jared Browne
+## Credits
+- Terrain generation by [mewo2/terrain](https://github.com/mewo2/terrain)
+- Language generation by [mewo2/naming-language](https://github.com/mewo2/naming-language/)
+- D3 to C# conversion from [d3/d3](https://github.com/d3/d3)
+- Math library: [MathNet.Numerics](https://github.com/mathnet/mathnet-numerics)
+- Fantasy font: Ringbearer
 
 ## License
-
-The code is available under the [MIT license][license], so you can fork it,
-improve it, learn from it, build upon it.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
-
-* mewo2 (Martin O'Leary)
-* mbostock (Mike Bostock)
-* Pete Klassen
-* Math.Net team for their public math library
+- Martin O'Leary (mewo2)
+- Mike Bostock (mbostock)
+- Pete Klassen
+- Math.Net team for their public math library

@@ -1,3 +1,5 @@
+**/bin/
+**/obj/
 Language/bin/
 Language/obj/
 FantasyMapGenerator/obj/Debug/FantasyMapGenerator.csproj.GenerateResource.Cache

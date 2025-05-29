@@ -580,7 +580,7 @@ namespace TerrainGenerator
             for (var i = 0; i < h.Length; i++)
             {
                 var j = idxs[i];
-                if (dh[j] >= 0)
+                if (j >= 0 && j < dh.Length && dh[j] >= 0 && dh[j] < output.Length)
                 {
                     output[dh[j]] += output[j];
                 }

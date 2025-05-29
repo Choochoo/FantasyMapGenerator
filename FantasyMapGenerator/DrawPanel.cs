@@ -37,9 +37,10 @@ namespace WorldMap
 
         private PrivateFontCollection fantasyFont;
         private int[] _drawQueue;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int[] DrawQueue
         {
-            get { return _drawQueue; }
+            get => _drawQueue;
             set
             {
                 _drawQueue = value;
@@ -689,17 +690,6 @@ namespace WorldMap
             g.DrawPath(textOutline, textPath);
             g.FillPath(textOutlineFill, textPath);
             g.FillPath(textBrush, textPath);
-
-            /*
-            using (var pen = new Pen(Color.IndianRed))
-            {
-                for (var i = 50; i < _drawnBitmap.Width; i += 50)
-                {
-                    g.DrawLine(pen, i, 0, i, _drawnBitmap.Height);
-                    g.DrawLine(pen, 0, i, _drawnBitmap.Width, i);
-                }
-            }
-            */
 
             textBrush.Dispose();
             textOutline.Dispose();
