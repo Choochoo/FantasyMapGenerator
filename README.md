@@ -23,6 +23,7 @@ Fantasy Map Generator is a C# application that procedurally generates detailed f
 ## Usage
 - Run the application from Visual Studio or execute the built binary from the `bin/Debug/net9.0-windows/` directory.
 - Follow the on-screen instructions to generate and customize your map.
+- To export executable, inside Package Manager Console ru this like `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true`
 
 ## Visual Walkthrough
 Below is a step-by-step visual guide to the map generation process:
