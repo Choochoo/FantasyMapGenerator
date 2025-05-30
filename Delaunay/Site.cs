@@ -4,9 +4,22 @@ using System.Drawing;
 
 namespace Delaunay
 {
+    /// <summary>
+    /// Represents a site (point) in a Voronoi diagram with associated edges and region information.
+    /// Sites are the fundamental elements used to generate Voronoi diagrams and Delaunay triangulations.
+    /// </summary>
     public class Site : ICoord
     {
         private static List<Site> _pool = new List<Site>();
+        
+        /// <summary>
+        /// Creates a new Site instance from the object pool or constructs a new one if the pool is empty.
+        /// </summary>
+        /// <param name="p">The position of the site as a PointF.</param>
+        /// <param name="index">The unique index identifier for this site.</param>
+        /// <param name="weight">The weight value associated with this site.</param>
+        /// <param name="color">The color value associated with this site.</param>
+        /// <returns>A new or recycled Site instance initialized with the provided values.</returns>
         public static Site Create(PointF p, int index, float weight, uint color)
         {
             if (_pool.Count > 0)
@@ -19,19 +32,22 @@ namespace Delaunay
             }
         }
 
+        /// <summary>
+        /// Sorts a list of sites first by Y coordinate, then by X coordinate, and updates site indices accordingly.
+        /// </summary>
+        /// <param name="sites">The list of sites to sort in-place.</param>
         internal static void SortSites(List<Site> sites)
         {
             sites.SortFunc(Site.Compare);
         }
 
-        /**
-         * sort sites on y, then x, coord
-         * also change each site's _siteIndex to match its new position in the list
-         * so the _siteIndex can be used to identify the site for nearest-neighbor queries
-         * 
-         * haha "also" - means more than one responsibility...
-         * 
-         */
+        /// <summary>
+        /// Compares two sites for sorting purposes, prioritizing Y coordinate then X coordinate.
+        /// Also swaps site indices as needed to maintain consistency with the new ordering.
+        /// </summary>
+        /// <param name="s1">The first site to compare.</param>
+        /// <param name="s2">The second site to compare.</param>
+        /// <returns>-1 if s1 should come before s2, 1 if s2 should come before s1, 0 if equal.</returns>
         private static float Compare(Site s1, Site s2)
         {
             int returnValue = (int)Voronoi.CompareByYThenX(s1, s2);
@@ -63,6 +79,13 @@ namespace Delaunay
 
 
         private static readonly float EPSILON = .005f;
+        
+        /// <summary>
+        /// Determines if two points are close enough to be considered the same location.
+        /// </summary>
+        /// <param name="p0">The first point to compare.</param>
+        /// <param name="p1">The second point to compare.</param>
+        /// <returns>True if the points are within the epsilon distance threshold.</returns>
         private static bool CloseEnough(PointF p0, PointF p1)
         {
             return Utilities.Distance(p0, p1) < EPSILON;
@@ -70,11 +93,13 @@ namespace Delaunay
 
         private PointF _coord;
 
+        /// <summary>
+        /// Gets the coordinate position of this site.
+        /// </summary>
+        /// <returns>The PointF representing the site's position.</returns>
         public PointF Coord()
         {
-            //get {
             return _coord;
-            //}
         }
 
         internal uint color;
@@ -85,6 +110,9 @@ namespace Delaunay
         // the edges that define this Site's Voronoi region:
         private List<Edge> _edges;
 
+        /// <summary>
+        /// Gets the list of edges that define this site's Voronoi region.
+        /// </summary>
         internal List<Edge> Edges
         {
             get
@@ -97,6 +125,14 @@ namespace Delaunay
         // ordered list of PointFs that define the region clipped to bounds:
         private List<PointF> _region;
 
+        /// <summary>
+        /// Initializes a new Site instance with enforced private construction.
+        /// </summary>
+        /// <param name="pce">Private constructor enforcer to prevent external instantiation.</param>
+        /// <param name="p">The position of the site.</param>
+        /// <param name="index">The site's index identifier.</param>
+        /// <param name="weight">The weight associated with this site.</param>
+        /// <param name="color">The color associated with this site.</param>
         public Site(Type pce, PointF p, int index, float weight, uint color)
         {
             if (pce != typeof(PrivateConstructorEnforcer))
@@ -106,6 +142,14 @@ namespace Delaunay
             Init(p, index, weight, color);
         }
 
+        /// <summary>
+        /// Initializes or reinitializes this site with new values.
+        /// </summary>
+        /// <param name="p">The position of the site.</param>
+        /// <param name="index">The site's index identifier.</param>
+        /// <param name="weight">The weight associated with this site.</param>
+        /// <param name="color">The color associated with this site.</param>
+        /// <returns>This site instance for method chaining.</returns>
         private Site Init(PointF p, int index, float weight, uint color)
         {
             _coord = p;
@@ -117,17 +161,28 @@ namespace Delaunay
             return this;
         }
 
+        /// <summary>
+        /// Returns a string representation of this site including its index and coordinates.
+        /// </summary>
+        /// <returns>A descriptive string of this site.</returns>
         public override string ToString()
         {
             return "Site " + _siteIndex + ": " + Coord().ToString();
         }
 
+        /// <summary>
+        /// Moves this site to a new position and clears any cached data.
+        /// </summary>
+        /// <param name="p">The new position for this site.</param>
         private void Move(PointF p)
         {
             Clear();
             _coord = p;
         }
 
+        /// <summary>
+        /// Disposes of this site by clearing its data and returning it to the object pool.
+        /// </summary>
         public void Dispose()
         {
             _coord = PointF.Empty;
@@ -135,6 +190,9 @@ namespace Delaunay
             _pool.Add(this);
         }
 
+        /// <summary>
+        /// Clears all cached data associated with this site including edges and region information.
+        /// </summary>
         private void Clear()
         {
             if (_edges != null)
@@ -154,17 +212,29 @@ namespace Delaunay
             }
         }
 
+        /// <summary>
+        /// Adds an edge to this site's list of defining edges.
+        /// </summary>
+        /// <param name="edge">The edge to add to this site.</param>
         internal void AddEdge(Edge edge)
         {
             _edges.Add(edge);
         }
 
+        /// <summary>
+        /// Finds the nearest edge to this site by comparing distances.
+        /// </summary>
+        /// <returns>The edge that is closest to this site.</returns>
         internal Edge NearestEdge()
         {
             _edges.SortFunc(Edge.CompareSitesDistances);
             return _edges[0];
         }
 
+        /// <summary>
+        /// Gets all sites that are neighbors to this site (connected by edges).
+        /// </summary>
+        /// <returns>A list of neighboring sites.</returns>
         internal List<Site> NeighborSites()
         {
             if (_edges == null || _edges.Count == 0)
@@ -183,6 +253,11 @@ namespace Delaunay
             return list;
         }
 
+        /// <summary>
+        /// Gets the neighboring site connected by the specified edge.
+        /// </summary>
+        /// <param name="edge">The edge connecting this site to its neighbor.</param>
+        /// <returns>The neighboring site, or null if this site is not connected to the edge.</returns>
         private Site NeighborSite(Edge edge)
         {
             if (this == edge.LeftSite)
@@ -196,6 +271,11 @@ namespace Delaunay
             return null;
         }
 
+        /// <summary>
+        /// Gets the Voronoi region for this site clipped to the specified bounds.
+        /// </summary>
+        /// <param name="clippingBounds">The rectangular bounds to clip the region to.</param>
+        /// <returns>A list of points defining the clipped Voronoi region.</returns>
         internal List<PointF> Region(RectangleF clippingBounds)
         {
             if (_edges == null || _edges.Count == 0)
@@ -214,16 +294,22 @@ namespace Delaunay
             return _region;
         }
 
+        /// <summary>
+        /// Reorders the edges around this site to form a proper polygon boundary.
+        /// </summary>
         private void ReorderEdges()
         {
-            //trace("_edges:", _edges);
             EdgeReorderer reorderer = new EdgeReorderer(_edges, typeof(Vertex));
             _edges = reorderer.Edges;
-            //trace("reordered:", _edges);
             _edgeOrientations = reorderer.EdgeOrientations;
             reorderer.Dispose();
         }
 
+        /// <summary>
+        /// Clips the Voronoi region to the specified rectangular bounds.
+        /// </summary>
+        /// <param name="bounds">The bounds to clip the region to.</param>
+        /// <returns>A list of points representing the clipped region.</returns>
         private List<PointF> ClipToBounds(RectangleF bounds)
         {
             List<PointF> PointFs = new List<PointF>();
@@ -260,11 +346,24 @@ namespace Delaunay
             return PointFs;
         }
 
+        /// <summary>
+        /// Connects points in the region by adding boundary points as needed.
+        /// </summary>
+        /// <param name="PointFs">The list of points to connect.</param>
+        /// <param name="j">The index of the edge to connect.</param>
+        /// <param name="bounds">The bounds for clipping.</param>
         private void Connect(List<PointF> PointFs, int j, RectangleF bounds)
         {
             Connect(PointFs, j, bounds, false);
         }
 
+        /// <summary>
+        /// Connects points in the region by adding boundary points as needed, with option to close the polygon.
+        /// </summary>
+        /// <param name="PointFs">The list of points to connect.</param>
+        /// <param name="j">The index of the edge to connect.</param>
+        /// <param name="bounds">The bounds for clipping.</param>
+        /// <param name="closingUp">Whether this connection is closing up the polygon.</param>
         private void Connect(List<PointF> PointFs, int j, RectangleF bounds, bool closingUp)
         {
             PointF rightPointF = PointFs[PointFs.Count - 1];
@@ -287,7 +386,6 @@ namespace Delaunay
                     int rightCheck = BoundsCheck.Check(rightPointF, bounds);
                     int newCheck = BoundsCheck.Check(newPointF, bounds);
                     float px, py;
-                    //throw new NotImplementedException("Modified, might not work");
                     if (rightCheck == BoundsCheck.RIGHT)
                     {
                         px = bounds.Right;
@@ -412,6 +510,9 @@ namespace Delaunay
         }
 
 
+        /// <summary>
+        /// Gets the X coordinate of this site.
+        /// </summary>
         internal float X
         {
             get
@@ -420,6 +521,9 @@ namespace Delaunay
             }
         }
 
+        /// <summary>
+        /// Gets the Y coordinate of this site.
+        /// </summary>
         internal float Y
         {
             get
@@ -428,12 +532,21 @@ namespace Delaunay
             }
         }
 
+        /// <summary>
+        /// Calculates the distance from this site to another coordinate.
+        /// </summary>
+        /// <param name="p">The coordinate to measure distance to.</param>
+        /// <returns>The Euclidean distance to the specified coordinate.</returns>
         internal float Dist(ICoord p)
         {
-            return Utilities.Distance(p.Coord(), this._coord);
+            return Utilities.Distance(Coord(), p.Coord());
         }
     }
 
+    /// <summary>
+    /// Utility class for checking which boundary a point lies on within a rectangle.
+    /// Provides constants and methods for boundary detection during region clipping.
+    /// </summary>
     class BoundsCheck
     {
         public static readonly int TOP = 1;
@@ -441,13 +554,12 @@ namespace Delaunay
         public static readonly int LEFT = 4;
         public static readonly int RIGHT = 8;
 
-        /**
-         * 
-         * @param PointF
-         * @param bounds
-         * @return an int with the appropriate bits set if the PointF lies on the corresponding bounds lines
-         * 
-         */
+        /// <summary>
+        /// Determines which boundary or boundaries of the rectangle the point lies on.
+        /// </summary>
+        /// <param name="point">The point to check.</param>
+        /// <param name="bounds">The rectangle to check against.</param>
+        /// <returns>A bitfield indicating which boundaries the point is on.</returns>
         public static int Check(PointF point, RectangleF bounds)
         {
             int value = 0;
@@ -470,9 +582,12 @@ namespace Delaunay
             return value;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the BoundsCheck utility class.
+        /// </summary>
         public BoundsCheck()
         {
-            throw new Exception("BoundsCheck constructor unused");
+            throw new Exception("BoundsCheck is a static class");
         }
     }
 }

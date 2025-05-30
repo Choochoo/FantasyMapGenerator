@@ -10,21 +10,40 @@ using WorldMap.Layers;
 
 namespace WorldMap
 {
+    /// <summary>
+    /// Main form for the Fantasy World Generator application that manages the step-by-step terrain generation process.
+    /// Provides UI controls for creating randomized terrain, applying erosion effects, placing cities, and generating final maps.
+    /// </summary>
     public partial class FantasyWorldGeneratorForm : Form
     {
+        /// <summary>
+        /// Cancellation token source for managing long-running async operations and allowing user cancellation.
+        /// </summary>
         private CancellationTokenSource _cancellationTokenSource;
         
+        /// <summary>
+        /// Initializes a new instance of the FantasyWorldGeneratorForm and creates initial terrain with the default seed value.
+        /// </summary>
         public FantasyWorldGeneratorForm()
         {
             InitializeComponent();
             paintPanel.CreateTerrain((int)seedStepper.Value);
         }
         
+        /// <summary>
+        /// Handles the form load event by initializing the paint panel for terrain visualization.
+        /// </summary>
+        /// <param name="sender">The form that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private void FantasyWorldGeneratorFormLoad(object sender, EventArgs e)
         {
             paintPanel.Load();
         }
 
+        /// <summary>
+        /// Cancels any currently running generation operation by requesting cancellation through the cancellation token.
+        /// Ensures clean shutdown of background tasks without blocking the UI thread.
+        /// </summary>
         private void CancelCurrentOperation()
         {
             if (_cancellationTokenSource != null && !_cancellationTokenSource.Token.IsCancellationRequested)
@@ -33,6 +52,12 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Generates a random set of 256 points for the initial mesh grid.
+        /// Creates the foundation point distribution that will be improved and used for terrain generation.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void GenerateRandomPointsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -48,6 +73,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Improves the current point distribution using Lloyd relaxation to create more evenly spaced points.
+        /// Results in better quality Voronoi diagrams and more natural terrain generation.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ImprovePointsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -64,6 +95,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Toggles between showing the original random points and the computed Voronoi corner vertices.
+        /// Allows visualization of the underlying mesh structure used for terrain generation.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ShowOriginalPointsClick(object sender, EventArgs e)
         {
             var originalText = "Show Original Points";
@@ -98,6 +135,12 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Resets the terrain generation process by creating a new optimized mesh with 4096 points.
+        /// Prepares the foundation for outline generation and enables all height modification controls.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ResetClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -115,6 +158,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Adds a random slope to the current heightmap based on a randomly generated direction vector.
+        /// Creates directional height variation that can simulate tectonic tilting effects.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void RandomSlopeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -136,6 +185,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Adds a cone-shaped depression to the heightmap centered on the terrain.
+        /// Creates a bowl-like lowland effect that can serve as lakes or valleys.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ConeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -156,6 +211,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Adds an inverted cone-shaped elevation to the heightmap centered on the terrain.
+        /// Creates a mountain or hill-like protrusion rising from the center outward.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void InvertedConeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -176,6 +237,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Adds five blob-shaped mountain ranges randomly distributed across the terrain.
+        /// Creates distinct elevated regions that form the basis for mountain systems.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void FiveBlobsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -196,6 +263,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Normalizes the heightmap values to ensure they fall within the standard 0-1 range.
+        /// Adjusts the terrain elevation scale for consistent processing by subsequent operations.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void NormalizeHeightmapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -211,6 +284,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Applies a peaky transformation to create more pronounced hills and mountain ridges.
+        /// Enhances terrain features by sharpening elevation transitions and creating dramatic relief.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void RoundHillsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -226,6 +305,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Smooths the heightmap by averaging each point with its neighbors using mesh relaxation.
+        /// Reduces sharp elevation changes and creates more natural, flowing terrain contours.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void RelaxClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -241,6 +326,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Sets the sea level to the median height value, determining which areas become water vs land.
+        /// Establishes the fundamental division between ocean and terrestrial regions.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void SetSeaLevelToMedianClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -256,6 +347,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Generates a fresh random heightmap specifically for erosion simulation experiments.
+        /// Creates uneroded terrain that serves as the starting point for erosion processing.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ErodeGenerateRandomHeightMapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -278,6 +375,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Applies hydraulic erosion simulation to carve realistic valleys and river channels.
+        /// Simulates water flow and sediment transport to create natural-looking terrain features.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ErodeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -301,6 +404,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Adjusts sea level to the median height after erosion to establish proper land-water boundaries.
+        /// Ensures consistent water level definition after terrain modification by erosion.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ErodeSeaLeveltoMedianClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -316,6 +425,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Cleans up coastline artifacts and fills terrain sinks to prevent water from pooling inappropriately.
+        /// Ensures realistic water flow by eliminating unrealistic inland seas and improving coastal definition.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void CleanCoastlinesClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -337,6 +452,12 @@ namespace WorldMap
             });
         }
 
+        /// <summary>
+        /// Toggles between showing the erosion rate visualization and the standard heightmap display.
+        /// Allows inspection of where erosion had the greatest impact on the terrain.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private void ShowErosionRateClick(object sender, EventArgs e)
         {
             var originalText = "Show Erosion Rate";
@@ -352,6 +473,14 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Generic method for toggling rendering layers on and off in the visualization pipeline.
+        /// Manages the display state of visual elements like coastlines, rivers, and shading effects.
+        /// </summary>
+        /// <param name="sender">The button that controls the rendering toggle.</param>
+        /// <param name="showText">Text to display when the layer is hidden.</param>
+        /// <param name="hideText">Text to display when the layer is visible.</param>
+        /// <param name="drawCall">The visualization layer identifier to toggle.</param>
         private void PhysRender(Button sender, string showText, string hideText, int drawCall)
         {
             var alteredDrawQueue = paintPanel.DrawQueue.ToList();
@@ -368,6 +497,12 @@ namespace WorldMap
             paintPanel.DrawQueue = alteredDrawQueue.OrderBy(o => o).ToArray();
         }
 
+        /// <summary>
+        /// Generates a complete rendered terrain with coastlines, rivers, and shading for final visualization.
+        /// Creates the definitive terrain suitable for final map rendering with all geographic features.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void RenderingGenerateRandomHeightmapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -393,21 +528,41 @@ namespace WorldMap
             });
         }
         
+        /// <summary>
+        /// Toggles the visibility of coastline rendering in the terrain visualization.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private void RenderingShowCoastlineClick(object sender, EventArgs e)
         {
             PhysRender((Button)sender, "Show Coastline", "Hide Coastline", (int)DrawPanel.Visualize.LayerRenderingShowCoastline);
         }
         
+        /// <summary>
+        /// Toggles the visibility of river system rendering in the terrain visualization.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private void RenderingShowRiversClick(object sender, EventArgs e)
         {
             PhysRender((Button)sender, "Show Rivers", "Hide Rivers", (int)DrawPanel.Visualize.LayerRenderingShowRivers);
         }
         
+        /// <summary>
+        /// Toggles the visibility of slope-based shading effects in the terrain visualization.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private void RenderingShowSlopeShadingClick(object sender, EventArgs e)
         {
             PhysRender((Button)sender, "Show Slope Shading", "Hide Slope Shading", (int)DrawPanel.Visualize.LayerRenderingShowSlopeShading);
         }
         
+        /// <summary>
+        /// Toggles the visibility of the base heightmap rendering in the terrain visualization.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private void RenderingHideHeightmapClick(object sender, EventArgs e)
         {
             PhysRender((Button)sender, "Show Heightmap", "Hide Heightmap", (int)DrawPanel.Visualize.LayerRenderingGenerateRandomHeightmap);

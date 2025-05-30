@@ -37,6 +37,9 @@ namespace Delaunay
             }
         }
 
+        /// <summary>
+        /// Disposes of the Voronoi diagram by clearing all internal data structures and releasing resources.
+        /// </summary>
         public void Dispose()
         {
             int i, n;
@@ -65,7 +68,8 @@ namespace Delaunay
                 _edges.Clear();
                 _edges = null;
             }
-            _plotBounds = new RectangleF();
+
+            _plotBounds = RectangleF.Empty;
             _sitesIndexedByLocation = null;
         }
 
@@ -81,20 +85,29 @@ namespace Delaunay
             FortunesAlgorithm();
         }
 
+        /// <summary>
+        /// Adds multiple sites to the Voronoi diagram with specified positions and colors.
+        /// </summary>
+        /// <param name="PointFs">List of point positions for the sites.</param>
+        /// <param name="colors">List of colors corresponding to each site.</param>
         private void AddSites(List<PointF> PointFs, List<uint> colors)
         {
-            uint length = (uint)PointFs.Count;
-            for (uint i = 0; i < length; ++i)
+            int length = PointFs.Count;
+            for (int i = 0; i < length; ++i)
             {
-                AddSite(PointFs[(int)i], colors != null ? colors[(int)i] : 0, (int)i);
+                AddSite(PointFs[i], colors != null ? colors[i] : 0, i);
             }
         }
 
+        /// <summary>
+        /// Adds a single site to the Voronoi diagram at the specified position.
+        /// </summary>
+        /// <param name="p">The position for the new site.</param>
+        /// <param name="color">The color value for the site.</param>
+        /// <param name="index">The index identifier for the site.</param>
         private void AddSite(PointF p, uint color, int index)
         {
-            //throw new NotImplementedException("This was modified, might not work");
-            System.Random random = new System.Random();
-            float weight = (float)random.NextDouble() * 100;
+            float weight = (float)_random.NextDouble() * 100;
             Site site = Site.Create(p, index, weight, color);
             _sites.Push(site);
             _sitesIndexedByLocation[p] = site;
@@ -226,6 +239,10 @@ namespace Delaunay
             return _sites.SiteCoords();
         }
 
+        /// <summary>
+        /// Executes Fortune's algorithm to compute the Voronoi diagram from the current set of sites.
+        /// This is the main computational method that generates the diagram structure.
+        /// </summary>
         private void FortunesAlgorithm()
         {
             Site newSite, bottomSite, topSite, tempSite;

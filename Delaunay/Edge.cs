@@ -208,6 +208,9 @@ namespace Delaunay
 
         private int _edgeIndex;
 
+        /// <summary>
+        /// Disposes of this edge by clearing its vertices, clipped vertices, and sites, then returns it to the object pool.
+        /// </summary>
         public void Dispose()
         {
             _leftVertex = null;
@@ -225,6 +228,10 @@ namespace Delaunay
             _pool.Add(this);
         }
 
+        /// <summary>
+        /// Initializes a new Edge instance with enforced private construction.
+        /// </summary>
+        /// <param name="pce">Private constructor enforcer to prevent external instantiation.</param>
         public Edge(Type pce)
         {
             if (pce != typeof(PrivateConstructorEnforcer))
@@ -236,6 +243,9 @@ namespace Delaunay
             Init();
         }
 
+        /// <summary>
+        /// Initializes this edge by creating the sites dictionary.
+        /// </summary>
         private void Init()
         {
             _sites = new Dictionary<LR, Site>();
@@ -248,12 +258,11 @@ namespace Delaunay
                      + (_rightVertex != null ? _rightVertex.VertexIndex.ToString() : "null") + "::";
         }
 
-        /**
-         * Set _clippedVertices to contain the two ends of the portion of the Voronoi edge that is visible
-         * within the bounds.  If no part of the Edge falls within the bounds, leave _clippedVertices null. 
-         * @param bounds
-         * 
-         */
+        /// <summary>
+        /// Clips the edge vertices to be within the specified bounds rectangle.
+        /// Sets the clipped vertices to contain the visible portion of the edge within bounds.
+        /// </summary>
+        /// <param name="bounds">The rectangular bounds to clip the edge to.</param>
         internal void ClipVertices(RectangleF bounds)
         {
             float xmin = bounds.X;

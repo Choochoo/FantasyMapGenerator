@@ -18,12 +18,21 @@ namespace D3Voronoi
         public RedBlackTree N { get; set; }// next node
         public double X, Y, CY;
 
+        /// <summary>
+        /// Resets the tree by clearing the root reference.
+        /// </summary>
         public void Reset()
         {
             U = L = R = P = N = null;
             C = false;
         }
 
+        /// <summary>
+        /// Inserts a new node into the red-black tree after the specified node.
+        /// Maintains red-black tree properties through rotations and recoloring.
+        /// </summary>
+        /// <param name="after">The node after which to insert the new node.</param>
+        /// <param name="node">The node to insert into the tree.</param>
         public void Insert(RedBlackTree after, RedBlackTree node)
         {
             RedBlackTree parent = null;
@@ -119,6 +128,11 @@ namespace D3Voronoi
             this._.C = false;
         }
 
+        /// <summary>
+        /// Removes a node from the red-black tree while maintaining tree properties.
+        /// Performs necessary rotations and recoloring to preserve red-black tree invariants.
+        /// </summary>
+        /// <param name="node">The node to remove from the tree.</param>
         public void Remove(RedBlackTree node)
         {
             if (node.N != null) node.N.P = node.P;
@@ -243,6 +257,11 @@ namespace D3Voronoi
             if (node != null) node.C = false;
         }
 
+        /// <summary>
+        /// Performs a left rotation around the specified node to maintain red-black tree properties.
+        /// </summary>
+        /// <param name="tree">The tree containing the node.</param>
+        /// <param name="node">The node to rotate around.</param>
         public void RedBlackRotateLeft(RedBlackTree tree, RedBlackTree node)
         {
             var p = node;
@@ -266,6 +285,11 @@ namespace D3Voronoi
             q.L = p;
         }
 
+        /// <summary>
+        /// Performs a right rotation around the specified node to maintain red-black tree properties.
+        /// </summary>
+        /// <param name="tree">The tree containing the node.</param>
+        /// <param name="node">The node to rotate around.</param>
         public void RedBlackRotateRight(RedBlackTree tree, RedBlackTree node)
         {
             var p = node;
