@@ -34,17 +34,17 @@ namespace D3Voronoi
 
         public static void RemoveBeach(ref Dictionary<int, Cell> cells, ref List<Edge> edges, ref RedBlackTree beaches, ref RedBlackTree circles, RedBlackTree beach)
         {
-            var circle = beach.Circle;
-            var x = circle.X;
-            var y = circle.CY;
-            var vertex = new Point(x, y);
-            var previous = beach.P;
-            var next = beach.N;
-            var disappearing = new List<RedBlackTree>() { beach };
+            RedBlackTree circle = beach.Circle;
+            double x = circle.X;
+            double y = circle.CY;
+            Point vertex = new Point(x, y);
+            RedBlackTree previous = beach.P;
+            RedBlackTree next = beach.N;
+            List<RedBlackTree> disappearing = new List<RedBlackTree>() { beach };
 
             DetachBeach(ref circles, ref beaches, beach);
 
-            var lArc = previous;
+            RedBlackTree lArc = previous;
             while (lArc.Circle != null && Math.Abs(x - lArc.Circle.X) < Diagram.Epsilon && Math.Abs(y - lArc.Circle.CY) < Diagram.Epsilon)
             {
                 previous = lArc.P;
@@ -56,7 +56,7 @@ namespace D3Voronoi
             disappearing.Insert(0, lArc);
             Circle.DetachCircle(ref circles, lArc);
 
-            var rArc = next;
+            RedBlackTree rArc = next;
             while (rArc.Circle != null && Math.Abs(x - rArc.Circle.X) < Diagram.Epsilon && Math.Abs(y - rArc.Circle.CY) < Diagram.Epsilon)
             {
                 next = rArc.N;
@@ -88,13 +88,13 @@ namespace D3Voronoi
 
         public static void AddBeach(ref Dictionary<int, Cell> cells, ref RedBlackTree circles, ref RedBlackTree beaches, ref List<Edge> edges, Point site)
         {
-            var x = site.X;
-            var directrix = site.Y;
+            double x = site.X;
+            double directrix = site.Y;
             RedBlackTree lArc = null;
             RedBlackTree rArc = null;
-            var dxl = 0d;
-            var dxr = 0d;
-            var node = beaches._;
+            double dxl = 0d;
+            double dxr = 0d;
+            RedBlackTree node = beaches._;
 
             while (node != null)
             {
@@ -134,7 +134,7 @@ namespace D3Voronoi
             }
 
             Cell.CreateCell(ref cells, site);
-            var newArc = CreateBeach(site);
+            RedBlackTree newArc = CreateBeach(site);
             beaches.Insert(lArc, newArc);
 
             if (lArc == null && rArc == null)
@@ -161,18 +161,18 @@ namespace D3Voronoi
             Circle.DetachCircle(ref circles, lArc);
             Circle.DetachCircle(ref circles, rArc);
 
-            var lSite = lArc.Site;
-            var ax = lSite.X;
-            var ay = lSite.Y;
-            var bx = site.X - ax;
-            var by = site.Y - ay;
-            var rSite = rArc.Site;
-            var cx = rSite.X - ax;
-            var cy = rSite.Y - ay;
-            var d = 2 * (bx * cy - by * cx);
-            var hb = bx * bx + by * by;
-            var hc = cx * cx + cy * cy;
-            var vertex = new Point((cy * hb - by * hc) / d + ax, (bx * hc - cx * hb) / d + ay);
+            Point lSite = lArc.Site;
+            double ax = lSite.X;
+            double ay = lSite.Y;
+            double bx = site.X - ax;
+            double by = site.Y - ay;
+            Point rSite = rArc.Site;
+            double cx = rSite.X - ax;
+            double cy = rSite.Y - ay;
+            double d = 2 * (bx * cy - by * cx);
+            double hb = bx * bx + by * by;
+            double hc = cx * cx + cy * cy;
+            Point vertex = new Point((cy * hb - by * hc) / d + ax, (bx * hc - cx * hb) / d + ay);
 
             rArc.Edge = Edge.SetEdgeEnd(rArc.Edge, lSite, rSite, vertex);
             newArc.Edge = Edge.CreateEdge(ref cells, ref edges, lSite, site, null, vertex);
@@ -183,26 +183,26 @@ namespace D3Voronoi
 
         public static double LeftBreakPoint(RedBlackTree arc, double directrix)
         {
-            var site = arc.Site;
-            var rfocx = site.X;
-            var rfocy = site.Y;
-            var pby2 = rfocy - directrix;
+            Point site = arc.Site;
+            double rfocx = site.X;
+            double rfocy = site.Y;
+            double pby2 = rfocy - directrix;
 
             if (pby2 == 0) return rfocx;
 
-            var lArc = arc.P;
+            RedBlackTree lArc = arc.P;
             if (lArc == null) return double.MinValue;
 
             site = lArc.Site;
-            var lfocx = site.X;
-            var lfocy = site.Y;
-            var plby2 = lfocy - directrix;
+            double lfocx = site.X;
+            double lfocy = site.Y;
+            double plby2 = lfocy - directrix;
 
             if (plby2 == 0) return lfocx;
 
-            var hl = lfocx - rfocx;
-            var aby2 = 1 / pby2 - 1 / plby2;
-            var b = hl / plby2;
+            double hl = lfocx - rfocx;
+            double aby2 = 1 / pby2 - 1 / plby2;
+            double b = hl / plby2;
 
             if (aby2 != 0) return (-b + Math.Sqrt(b * b - 2 * aby2 * (hl * hl / (-2 * plby2) - lfocy + plby2 / 2 + rfocy - pby2 / 2))) / aby2 + rfocx;
 
@@ -211,9 +211,9 @@ namespace D3Voronoi
 
         private static double RightBreakPoint(RedBlackTree arc, double directrix)
         {
-            var rArc = arc.N;
+            RedBlackTree rArc = arc.N;
             if (rArc != null) return LeftBreakPoint(rArc, directrix);
-            var site = arc.Site;
+            Point site = arc.Site;
             return site.Y == directrix ? site.X : double.MaxValue;
         }
     }

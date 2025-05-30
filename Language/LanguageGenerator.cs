@@ -23,16 +23,16 @@ namespace Language
         /// <returns>A new string with the characters randomly rearranged.</returns>
         private static string Shuffled(string phoneme)
         {
-            var list = phoneme.ToCharArray();
-            var newlist = new List<char>();
-            for (var i = 0; i < list.Length; i++)
+            char[] list = phoneme.ToCharArray();
+            List<char> newlist = new List<char>();
+            for (int i = 0; i < list.Length; i++)
             {
                 newlist.Add(list[i]);
             }
-            for (var i = list.Length - 1; i > 0; i--)
+            for (int i = list.Length - 1; i > 0; i--)
             {
-                var tmp = newlist[i];
-                var j = RandRange(i, null);
+                char tmp = newlist[i];
+                int j = RandRange(i, null);
                 newlist[i] = newlist[j];
                 newlist[j] = tmp;
             }
@@ -81,8 +81,8 @@ namespace Language
         private static string Join(string[] list, string sep = "")
         {
             if (list.Length == 0) return string.Empty;
-            var s = list[0];
-            for (var i = 1; i < list.Length; i++)
+            string s = list[0];
+            for (int i = 1; i < list.Length; i++)
             {
                 s += sep;
                 s += list[i];
@@ -110,10 +110,10 @@ namespace Language
         private static string Spell(Language lang, string syll)
         {
             if (lang.NoOrtho) return syll;
-            var s = string.Empty;
-            for (var i = 0; i < syll.Length; i++)
+            string s = string.Empty;
+            for (int i = 0; i < syll.Length; i++)
             {
-                var c = syll[i];
+                char c = syll[i];
                 if (lang.Cortho.ContainsKey(c))
                     s += lang.Cortho[c];
                 else if (lang.Vortho.ContainsKey(c))
@@ -135,11 +135,11 @@ namespace Language
         {
             while (true)
             {
-                var syll = "";
-                for (var i = 0; i < lang.Structure.Length; i++)
+                string syll = "";
+                for (int i = 0; i < lang.Structure.Length; i++)
                 {
-                    var ptype = lang.Structure[i].ToString();
-                    var structCharArray = lang.Structure.ToCharArray();
+                    string ptype = lang.Structure[i].ToString();
+                    char[] structCharArray = lang.Structure.ToCharArray();
                     if (structCharArray.Length > i + 1 && structCharArray[i + 1] == '?')
                     {
                         i++;
@@ -150,8 +150,8 @@ namespace Language
                     }
                     syll += lang.Phonemes[ptype][Choose(lang.Phonemes[ptype].Length, lang.Exponent)];
                 }
-                var bad = false;
-                for (var i = 0; i < lang.Restricts.Length; i++)
+                bool bad = false;
+                for (int i = 0; i < lang.Restricts.Length; i++)
                 {
                     if (Regex.Match(syll, lang.Restricts[i], RegexOptions.IgnoreCase).Success)
                     {
@@ -175,16 +175,16 @@ namespace Language
             if (lang.NoMorph)
                 return MakeSyllable(lang);
 
-            var list = lang.Morphemes.ContainsKey(key) ? lang.Morphemes[key] : [];
-            var extras = 10;
+            List<string> list = lang.Morphemes.ContainsKey(key) ? lang.Morphemes[key] : [];
+            int extras = 10;
             if (!string.IsNullOrEmpty(key)) extras = 1;
             while (true)
             {
-                var n = RandRange((double)(list.Count + extras), null);
+                int n = RandRange((double)(list.Count + extras), null);
                 if (list.ElementAtOrDefault(n) != null) return list[n];
-                var morph = MakeSyllable(lang);
-                var bad = false;
-                foreach (var k in lang.Morphemes)
+                string morph = MakeSyllable(lang);
+                bool bad = false;
+                foreach (KeyValuePair<string, List<string>> k in lang.Morphemes)
                 {
                     if (lang.Morphemes[k.Key].Contains(morph))
                     {
@@ -207,13 +207,13 @@ namespace Language
         /// <returns>A complete word composed of one or more syllables.</returns>
         private static string MakeWord(Language lang, string key)
         {
-            var nsylls = RandRange(lang.MinSyll, lang.MaxSyll + 1);
-            var w = string.Empty;
-            var keys = new Dictionary<int, string>();
+            int nsylls = RandRange(lang.MinSyll, lang.MaxSyll + 1);
+            string w = string.Empty;
+            Dictionary<int, string> keys = new Dictionary<int, string>();
             keys[RandRange(nsylls)] = key;
-            for (var i = 0; i < nsylls; i++)
+            for (int i = 0; i < nsylls; i++)
             {
-                var inKey = keys.ContainsKey(i) ? keys[i] : string.Empty;
+                string inKey = keys.ContainsKey(i) ? keys[i] : string.Empty;
                 w += GetMorpheme(lang, inKey);
             }
             return w;
@@ -232,19 +232,19 @@ namespace Language
                 ws = lang.Words[key];
             else
                 ws = new List<string>();
-            var extras = 3;
+            int extras = 3;
             if (!string.IsNullOrEmpty(key)) extras = 2;
             while (true)
             {
-                var n = RandRange(ws.Count + extras);
-                var w = ws.Count > n ? ws[n] : null;
+                int n = RandRange(ws.Count + extras);
+                string w = ws.Count > n ? ws[n] : null;
                 if (w != null)
                 {
                     return w;
                 }
                 w = MakeWord(lang, key);
-                var bad = false;
-                foreach (var k in lang.Words)
+                bool bad = false;
+                foreach (KeyValuePair<string, List<string>> k in lang.Words)
                 {
                     if (lang.Words[k.Key].Contains(w))
                     {
@@ -275,15 +275,15 @@ namespace Language
 
             while (true)
             {
-                var name = string.Empty;
+                string name = string.Empty;
                 if (Random.NextDouble() < 0.5)
                 {
                     name = Capitalize(GetWord(lang, key));
                 }
                 else
                 {
-                    var w1 = Capitalize(GetWord(lang, Random.NextDouble() < 0.6 ? key : string.Empty));
-                    var w2 = Capitalize(GetWord(lang, Random.NextDouble() < 0.6 ? key : string.Empty));
+                    string w1 = Capitalize(GetWord(lang, Random.NextDouble() < 0.6 ? key : string.Empty));
+                    string w2 = Capitalize(GetWord(lang, Random.NextDouble() < 0.6 ? key : string.Empty));
                     if (w1 == w2) continue;
 
                     if (Random.NextDouble() > 0.5)
@@ -302,10 +302,10 @@ namespace Language
                 }
 
                 if ((name.Length < lang.MinChar) || (name.Length > lang.MaxChar)) continue;
-                var used = false;
-                for (var i = 0; i < lang.Names.Count; i++)
+                bool used = false;
+                for (int i = 0; i < lang.Names.Count; i++)
                 {
-                    var name2 = lang.Names[i];
+                    string name2 = lang.Names[i];
                     if ((name.IndexOf(name2, StringComparison.Ordinal) != -1) || (name2.IndexOf(name, StringComparison.Ordinal) != -1))
                     {
                         used = true;
@@ -324,7 +324,7 @@ namespace Language
         /// <returns>A Language instance configured to use orthographic representations.</returns>
         public static Language MakeOrthoLanguage()
         {
-            var lang = new Language();
+            Language lang = new Language();
             lang.NoOrtho = false;
             return lang;
         }
@@ -336,7 +336,7 @@ namespace Language
         public static Language MakeRandomLanguage()
         {
             ChooseCount = 0;
-            var lang = new Language();
+            Language lang = new Language();
             lang.NoOrtho = false;
             lang.NoMorph = false;
             lang.NoWordPool = false;
@@ -352,7 +352,7 @@ namespace Language
             lang.MinSyll = RandRange(1, 3);
             if (lang.Structure.Length < 3) lang.MinSyll++;
             lang.MaxSyll = RandRange(lang.MinSyll + 1, 7);
-            var joinerArray = "   -".ToCharArray();
+            char[] joinerArray = "   -".ToCharArray();
             lang.Joiner = joinerArray[Choose(joinerArray.Length)];
             return lang;
         }

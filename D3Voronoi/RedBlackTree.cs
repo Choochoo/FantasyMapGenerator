@@ -264,9 +264,9 @@ namespace D3Voronoi
         /// <param name="node">The node to rotate around.</param>
         public void RedBlackRotateLeft(RedBlackTree tree, RedBlackTree node)
         {
-            var p = node;
-            var q = node.R;
-            var parent = p.U;
+            RedBlackTree p = node;
+            RedBlackTree q = node.R;
+            RedBlackTree parent = p.U;
 
             if (parent != null)
             {
@@ -292,9 +292,9 @@ namespace D3Voronoi
         /// <param name="node">The node to rotate around.</param>
         public void RedBlackRotateRight(RedBlackTree tree, RedBlackTree node)
         {
-            var p = node;
-            var q = node.L;
-            var parent = p.U;
+            RedBlackTree p = node;
+            RedBlackTree q = node.L;
+            RedBlackTree parent = p.U;
 
             if (parent != null)
             {

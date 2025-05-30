@@ -62,7 +62,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var points = await Task.Run(() => paintPanel.Terrain.GeneratePoints(256, Extent.DefaultExtent), token).ConfigureAwait(false);
+                Point[] points = await Task.Run(() => paintPanel.Terrain.GeneratePoints(256, Extent.DefaultExtent), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -83,7 +83,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var improvedPoints = await Task.Run(() => 
+                Point[] improvedPoints = await Task.Run(() => 
                     paintPanel.Terrain.ImprovePoints(LayerGrid.Instance.MeshPts, Extent.DefaultExtent, 1), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
@@ -103,8 +103,8 @@ namespace WorldMap
         /// <param name="e">Event arguments containing event data.</param>
         private async void ShowOriginalPointsClick(object sender, EventArgs e)
         {
-            var originalText = "Show Original Points";
-            var button = (Button)sender;
+            string originalText = "Show Original Points";
+            Button button = (Button)sender;
             
             if (button.Text == originalText)
             {
@@ -112,7 +112,7 @@ namespace WorldMap
                 {
                     if (LayerGrid.Instance.MeshVxs == null)
                     {
-                        var mesh = await Task.Run(() => 
+                        Mesh mesh = await Task.Run(() => 
                             paintPanel.Terrain.MakeMesh(LayerGrid.Instance.MeshPts, Extent.DefaultExtent), token).ConfigureAwait(false);
                         
                         this.Invoke((MethodInvoker)delegate
@@ -145,7 +145,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var mesh = await Task.Run(() => paintPanel.Terrain.GenerateGoodMesh(4096, Extent.DefaultExtent), token).ConfigureAwait(false);
+                Mesh mesh = await Task.Run(() => paintPanel.Terrain.GenerateGoodMesh(4096, Extent.DefaultExtent), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -168,12 +168,12 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var slopeHeights = await Task.Run(() =>
+                double[] slopeHeights = await Task.Run(() =>
                 {
-                    var mesh = LayerOutline.Instance.Mesh;
-                    var currentHeights = LayerOutline.Instance.Heights;
-                    var randomVector = paintPanel.Terrain.RandomVector(4);
-                    var slope = paintPanel.Terrain.Slope(mesh, randomVector);
+                    Mesh mesh = LayerOutline.Instance.Mesh;
+                    double[] currentHeights = LayerOutline.Instance.Heights;
+                    Point randomVector = paintPanel.Terrain.RandomVector(4);
+                    double[] slope = paintPanel.Terrain.Slope(mesh, randomVector);
                     return paintPanel.Terrain.Add(currentHeights.Length, currentHeights, slope);
                 }, token).ConfigureAwait(false);
                 
@@ -195,11 +195,11 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var coneHeights = await Task.Run(() =>
+                double[] coneHeights = await Task.Run(() =>
                 {
-                    var mesh = LayerOutline.Instance.Mesh;
-                    var currentHeights = LayerOutline.Instance.Heights;
-                    var cone = paintPanel.Terrain.Cone(mesh, -0.5f);
+                    Mesh mesh = LayerOutline.Instance.Mesh;
+                    double[] currentHeights = LayerOutline.Instance.Heights;
+                    double[] cone = paintPanel.Terrain.Cone(mesh, -0.5f);
                     return paintPanel.Terrain.Add(currentHeights.Length, currentHeights, cone);
                 }, token).ConfigureAwait(false);
                 
@@ -221,11 +221,11 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var invertedConeHeights = await Task.Run(() =>
+                double[] invertedConeHeights = await Task.Run(() =>
                 {
-                    var mesh = LayerOutline.Instance.Mesh;
-                    var currentHeights = LayerOutline.Instance.Heights;
-                    var invertedCone = paintPanel.Terrain.Cone(mesh, 0.5f);
+                    Mesh mesh = LayerOutline.Instance.Mesh;
+                    double[] currentHeights = LayerOutline.Instance.Heights;
+                    double[] invertedCone = paintPanel.Terrain.Cone(mesh, 0.5f);
                     return paintPanel.Terrain.Add(currentHeights.Length, currentHeights, invertedCone);
                 }, token).ConfigureAwait(false);
                 
@@ -247,11 +247,11 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var blobHeights = await Task.Run(() =>
+                double[] blobHeights = await Task.Run(() =>
                 {
-                    var mesh = LayerOutline.Instance.Mesh;
-                    var currentHeights = LayerOutline.Instance.Heights;
-                    var mountains = paintPanel.Terrain.Mountains(mesh, 5);
+                    Mesh mesh = LayerOutline.Instance.Mesh;
+                    double[] currentHeights = LayerOutline.Instance.Heights;
+                    double[] mountains = paintPanel.Terrain.Mountains(mesh, 5);
                     return paintPanel.Terrain.Add(currentHeights.Length, currentHeights, mountains);
                 }, token).ConfigureAwait(false);
                 
@@ -273,7 +273,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var normalizedHeights = await Task.Run(() => 
+                double[] normalizedHeights = await Task.Run(() => 
                     paintPanel.Terrain.Normalize(LayerOutline.Instance.Heights), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
@@ -294,7 +294,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var peakyHeights = await Task.Run(() => 
+                double[] peakyHeights = await Task.Run(() => 
                     paintPanel.Terrain.Peaky(LayerOutline.Instance.Heights), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
@@ -315,7 +315,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var relaxedHeights = await Task.Run(() => 
+                double[] relaxedHeights = await Task.Run(() => 
                     paintPanel.Terrain.Relax(LayerOutline.Instance.Mesh, LayerOutline.Instance.Heights), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
@@ -336,7 +336,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var seaLevelHeights = await Task.Run(() => 
+                double[] seaLevelHeights = await Task.Run(() => 
                     paintPanel.Terrain.SetSeaLevel(LayerOutline.Instance.Heights, 0.5f), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
@@ -357,10 +357,10 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var (mesh, heights) = await Task.Run(() =>
+                (Mesh mesh, double[] heights) = await Task.Run(() =>
                 {
-                    var meshVar = LayerErosion.Instance.Mesh;
-                    var heightsVar = LayerErosion.Instance.Heights;
+                    Mesh meshVar = LayerErosion.Instance.Mesh;
+                    double[] heightsVar = LayerErosion.Instance.Heights;
                     paintPanel.Terrain.GenerateUneroded(ref meshVar, ref heightsVar);
                     return (meshVar, heightsVar);
                 }, token).ConfigureAwait(false);
@@ -385,12 +385,12 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var (mesh, heights, downhill) = await Task.Run(() =>
+                (Mesh mesh, double[] heights, int[] downhill) = await Task.Run(() =>
                 {
-                    var meshVar = LayerErosion.Instance.Mesh;
-                    var heightsVar = LayerErosion.Instance.Heights;
-                    var downhillVar = LayerErosion.Instance.Downhill;
-                    var erodedHeights = paintPanel.Terrain.DoErosion(ref meshVar, ref downhillVar, heightsVar, 0.1f);
+                    Mesh meshVar = LayerErosion.Instance.Mesh;
+                    double[] heightsVar = LayerErosion.Instance.Heights;
+                    int[] downhillVar = LayerErosion.Instance.Downhill;
+                    double[] erodedHeights = paintPanel.Terrain.DoErosion(ref meshVar, ref downhillVar, heightsVar, 0.1f);
                     return (meshVar, erodedHeights, downhillVar);
                 }, token).ConfigureAwait(false);
                 
@@ -414,7 +414,7 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var seaLevelHeights = await Task.Run(() => 
+                double[] seaLevelHeights = await Task.Run(() => 
                     paintPanel.Terrain.SetSeaLevel(LayerErosion.Instance.Heights, 0.5f), token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
@@ -435,11 +435,11 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var (mesh, cleanedHeights) = await Task.Run(() =>
+                (Mesh mesh, double[] cleanedHeights) = await Task.Run(() =>
                 {
-                    var meshVar = LayerErosion.Instance.Mesh;
-                    var coastHeights = paintPanel.Terrain.CleanCoast(meshVar, LayerErosion.Instance.Heights, 1);
-                    var filledHeights = paintPanel.Terrain.FillSinks(ref meshVar, coastHeights);
+                    Mesh meshVar = LayerErosion.Instance.Mesh;
+                    double[] coastHeights = paintPanel.Terrain.CleanCoast(meshVar, LayerErosion.Instance.Heights, 1);
+                    double[] filledHeights = paintPanel.Terrain.FillSinks(ref meshVar, coastHeights);
                     return (meshVar, filledHeights);
                 }, token).ConfigureAwait(false);
                 
@@ -460,7 +460,7 @@ namespace WorldMap
         /// <param name="e">Event arguments containing event data.</param>
         private void ShowErosionRateClick(object sender, EventArgs e)
         {
-            var originalText = "Show Erosion Rate";
+            string originalText = "Show Erosion Rate";
             if (((Button)sender).Text == originalText)
             {
                 ((Button)sender).Text = "Show Heightmap";
@@ -483,7 +483,7 @@ namespace WorldMap
         /// <param name="drawCall">The visualization layer identifier to toggle.</param>
         private void PhysRender(Button sender, string showText, string hideText, int drawCall)
         {
-            var alteredDrawQueue = paintPanel.DrawQueue.ToList();
+            List<int> alteredDrawQueue = paintPanel.DrawQueue.ToList();
             alteredDrawQueue.Remove(drawCall);
             if (sender.Text == showText)
             {
@@ -507,18 +507,18 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var (downhill, mesh, heights) = await Task.Run(() =>
+                (int[] downhill, Mesh mesh, double[] heights) = await Task.Run(() =>
                 {
-                    var instance = LayerRendering.Instance;
-                    var downhillVar = instance.Downhill;
-                    var meshVar = instance.Mesh;
-                    var generatedHeights = paintPanel.Terrain.GenerateCoast(ref downhillVar, ref meshVar, 4096, Extent.DefaultExtent);
+                    LayerRendering instance = LayerRendering.Instance;
+                    int[] downhillVar = instance.Downhill;
+                    Mesh meshVar = instance.Mesh;
+                    double[] generatedHeights = paintPanel.Terrain.GenerateCoast(ref downhillVar, ref meshVar, 4096, Extent.DefaultExtent);
                     return (downhillVar, meshVar, generatedHeights);
                 }, token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
                 {
-                    var instance = LayerRendering.Instance;
+                    LayerRendering instance = LayerRendering.Instance;
                     instance.Downhill = downhill;
                     instance.Mesh = mesh;
                     instance.Heights = heights;
@@ -578,19 +578,19 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var (downhill, mesh, heights, cityRender) = await Task.Run(() =>
+                (int[] downhill, Mesh mesh, double[] heights, CityRender cityRender) = await Task.Run(() =>
                 {
-                    var instance = LayerCities.Instance;
-                    var downhillVar = instance.Downhill;
-                    var meshVar = instance.Mesh;
-                    var heightsVar = instance.Heights;
-                    var cityRenderVar = paintPanel.Terrain.NewCityRender(ref downhillVar, ref meshVar, ref heightsVar, Extent.DefaultExtent);
+                    LayerCities instance = LayerCities.Instance;
+                    int[] downhillVar = instance.Downhill;
+                    Mesh meshVar = instance.Mesh;
+                    double[] heightsVar = instance.Heights;
+                    CityRender cityRenderVar = paintPanel.Terrain.NewCityRender(ref downhillVar, ref meshVar, ref heightsVar, Extent.DefaultExtent);
                     return (downhillVar, meshVar, heightsVar, cityRenderVar);
                 }, token).ConfigureAwait(false);
                 
                 this.Invoke((MethodInvoker)delegate
                 {
-                    var instance = LayerCities.Instance;
+                    LayerCities instance = LayerCities.Instance;
                     instance.Downhill = downhill;
                     instance.Mesh = mesh;
                     instance.Heights = heights;
@@ -612,14 +612,14 @@ namespace WorldMap
         {
             await ExecuteGenerationAsync(async (token) =>
             {
-                var (downhill, mesh, heights, cityRender) = await Task.Run(() =>
+                (int[] downhill, Mesh mesh, double[] heights, CityRender cityRender) = await Task.Run(() =>
                 {
-                    var instance = LayerCities.Instance;
-                    var cityRenderVar = instance.CityRender;
-                    var downhillVar = instance.Downhill;
-                    var meshVar = instance.Mesh;
-                    var heightsVar = instance.Heights;
-                    var cities = cityRenderVar.Cities;
+                    LayerCities instance = LayerCities.Instance;
+                    CityRender cityRenderVar = instance.CityRender;
+                    int[] downhillVar = instance.Downhill;
+                    Mesh meshVar = instance.Mesh;
+                    double[] heightsVar = instance.Heights;
+                    List<int> cities = cityRenderVar.Cities;
                     
                     paintPanel.Terrain.PlaceCity(ref cities, ref downhillVar, ref meshVar, ref heightsVar);
                     cityRenderVar.Cities = cities;
@@ -629,7 +629,7 @@ namespace WorldMap
                 
                 this.Invoke((MethodInvoker)delegate
                 {
-                    var instance = LayerCities.Instance;
+                    LayerCities instance = LayerCities.Instance;
                     instance.Downhill = downhill;
                     instance.Mesh = mesh;
                     instance.Heights = heights;
@@ -648,17 +648,17 @@ namespace WorldMap
         /// <returns>A task representing the asynchronous operation.</returns>
         public async Task CityDrawAsync(bool cityViewScore = true)
         {
-            var (downhill, mesh, heights, cityRender) = await Task.Run(() =>
+            (int[] downhill, Mesh mesh, double[] heights, CityRender cityRender) = await Task.Run(() =>
             {
-                var instance = LayerCities.Instance;
-                var cityRenderVar = instance.CityRender;
-                var downhillVar = instance.Downhill;
-                var meshVar = instance.Mesh;
-                var heightsVar = instance.Heights;
+                LayerCities instance = LayerCities.Instance;
+                CityRender cityRenderVar = instance.CityRender;
+                int[] downhillVar = instance.Downhill;
+                Mesh meshVar = instance.Mesh;
+                double[] heightsVar = instance.Heights;
                 
                 cityRenderVar.Territories = paintPanel.Terrain.GetTerritories(ref cityRenderVar, ref downhillVar, ref meshVar, ref heightsVar);
                 
-                var cities = cityRenderVar.Cities;
+                List<int> cities = cityRenderVar.Cities;
                 if (cityViewScore)
                     cityRenderVar.Score = paintPanel.Terrain.CityScore(ref cities, ref downhillVar, ref meshVar, ref heightsVar);
                 
@@ -668,7 +668,7 @@ namespace WorldMap
             
             this.Invoke((MethodInvoker)delegate
             {
-                var instance = LayerCities.Instance;
+                LayerCities instance = LayerCities.Instance;
                 instance.CityRender = cityRender;
                 instance.Downhill = downhill;
                 instance.Mesh = mesh;
@@ -686,8 +686,8 @@ namespace WorldMap
         /// <param name="e">Event arguments containing event data.</param>
         private async void ShowTerritoriesClick(object sender, EventArgs e)
         {
-            var originalText = "Show Territories";
-            var button = (Button)sender;
+            string originalText = "Show Territories";
+            Button button = (Button)sender;
             
             if (button.Text == originalText)
             {
@@ -723,12 +723,12 @@ namespace WorldMap
         /// <returns>A task representing the asynchronous map generation operation.</returns>
         private async Task DoMapAsync(CancellationToken cancellationToken = default)
         {
-            var (downhill, mesh, heights, cityRender) = await Task.Run(() =>
+            (int[] downhill, Mesh mesh, double[] heights, CityRender cityRender) = await Task.Run(() =>
             {
-                var cityRenderVar = new CityRender();
-                var downhillVar = new int[0];
-                var meshVar = new Mesh();
-                var generatedHeights = paintPanel.Terrain.GenerateCoast(ref downhillVar, ref meshVar, cityRenderVar.AreaProperties.NumberOfPoints, Extent.DefaultExtent);
+                CityRender cityRenderVar = new CityRender();
+                int[] downhillVar = new int[0];
+                Mesh meshVar = new Mesh();
+                double[] generatedHeights = paintPanel.Terrain.GenerateCoast(ref downhillVar, ref meshVar, cityRenderVar.AreaProperties.NumberOfPoints, Extent.DefaultExtent);
                 
                 paintPanel.Terrain.PlaceCities(ref cityRenderVar, ref downhillVar, ref meshVar, ref generatedHeights);
                 
@@ -737,21 +737,21 @@ namespace WorldMap
             
             cancellationToken.ThrowIfCancellationRequested();
             
-            var (rivers, coasts, territories, borders) = await Task.Run(() =>
+            (List<List<Point>> rivers, List<List<Point>> coasts, double[] territories, List<List<Point>> borders) = await Task.Run(() =>
             {
-                var riversVar = paintPanel.Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d);
-                var coastsVar = paintPanel.Terrain.Contour(ref mesh, ref heights, 0);
-                var territoriesVar = paintPanel.Terrain.GetTerritories(ref cityRender, ref downhill, ref mesh, ref heights);
+                List<List<Point>> riversVar = paintPanel.Terrain.GetRivers(ref mesh, ref downhill, ref heights, 0.01d);
+                List<List<Point>> coastsVar = paintPanel.Terrain.Contour(ref mesh, ref heights, 0);
+                double[] territoriesVar = paintPanel.Terrain.GetTerritories(ref cityRender, ref downhill, ref mesh, ref heights);
                 
                 cityRender.Territories = territoriesVar;
-                var bordersVar = paintPanel.Terrain.GetBorders(ref mesh, ref cityRender, ref heights);
+                List<List<Point>> bordersVar = paintPanel.Terrain.GetBorders(ref mesh, ref cityRender, ref heights);
                 
                 return (riversVar, coastsVar, territoriesVar, bordersVar);
             }, cancellationToken).ConfigureAwait(false);
             
             this.Invoke((MethodInvoker)delegate
             {
-                var instance = LayerLabels.Instance;
+                LayerLabels instance = LayerLabels.Instance;
                 instance.Reset();
                 
                 cityRender.Rivers = rivers;
@@ -807,7 +807,7 @@ namespace WorldMap
         /// <param name="e">Key event arguments containing information about the key pressed.</param>
         private void NumericUpDown1KeyDown(object sender, KeyEventArgs e)
         {
-            var seed = (int)seedStepper.Value;
+            int seed = (int)seedStepper.Value;
             seed = seed < 0 ? -seed : seed;
             paintPanel.CreateTerrain(seed);
         }

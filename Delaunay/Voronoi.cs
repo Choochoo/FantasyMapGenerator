@@ -75,7 +75,7 @@ namespace Delaunay
 
         public Voronoi(List<PointF> PointFs, Extent extentPlotBounds)
         {
-            var plotBounds = new RectangleF((float)extentPlotBounds.x, (float)extentPlotBounds.y, (float)extentPlotBounds.width, (float)extentPlotBounds.height);
+            RectangleF plotBounds = new RectangleF((float)extentPlotBounds.x, (float)extentPlotBounds.y, (float)extentPlotBounds.width, (float)extentPlotBounds.height);
             _sites = new SiteList();
             _sitesIndexedByLocation = new Dictionary<PointF, Site>();
             AddSites(PointFs, null);

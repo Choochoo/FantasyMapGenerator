@@ -11,13 +11,13 @@ namespace D3Voronoi
         public Edge() { }
         public static Edge CreateEdge(ref Dictionary<int, Cell> cells, ref List<Edge> edges, Point left, Point right, Point v0 = null, Point v1 = null)
         {
-            var edge = new Edge()
+            Edge edge = new Edge()
             {
                 Points = new Point[2]
             };
 
             edges.Add(edge);
-            var index = edges.Count - 1;
+            int index = edges.Count - 1;
             edge.Left = left;
             edge.Right = right;
             if (v0 != null)
@@ -31,7 +31,7 @@ namespace D3Voronoi
 
         public static Edge CreateBorderEdge(Point left, Point v0, Point v1)
         {
-            var edge = new Edge()
+            Edge edge = new Edge()
             {
                 Points = new Point[] { v0, v1 }
             };
@@ -61,21 +61,21 @@ namespace D3Voronoi
         // Liang–Barsky line clipping.
         public static bool ClipEdge(Edge edge, double x0, double y0, double x1, double y1)
         {
-            var a = edge.Points[0];
-            var b = edge.Points[1];
-            var ax = a.X;
-            var ay = a.Y;
-            var bx = b.X;
-            var by = b.Y;
-            var t0 = 0d;
-            var t1 = 1d;
-            var dx = bx - ax;
-            var dy = by - ay;
+            Point a = edge.Points[0];
+            Point b = edge.Points[1];
+            double ax = a.X;
+            double ay = a.Y;
+            double bx = b.X;
+            double by = b.Y;
+            double t0 = 0d;
+            double t1 = 1d;
+            double? dx = bx - ax;
+            double dy = by - ay;
             double r;
             //DX IS MESSED UP HERE
             r = x0 - ax;
             if (dx == null && r > 0) return false;
-            r /= dx;
+            r /= dx.Value;
             if (dx < 0)
             {
                 if (r < t0) return false;
@@ -89,7 +89,7 @@ namespace D3Voronoi
 
             r = x1 - ax;
             if (dx == null && r < 0) return false;
-            r /= dx;
+            r /= dx.Value;
             if (dx < 0)
             {
                 if (r > t1) return false;
@@ -131,25 +131,25 @@ namespace D3Voronoi
 
             if (!(t0 > 0) && !(t1 < 1)) return true; // TODO Better check?
 
-            if (t0 > 0) edge.Points[0] = new Point(ax + t0 * dx, ay + t0 * dy);
-            if (t1 < 1) edge.Points[1] = new Point(ax + t1 * dx, ay + t1 * dy);
+            if (t0 > 0) edge.Points[0] = new Point(ax + t0 * dx.Value, ay + t0 * dy);
+            if (t1 < 1) edge.Points[1] = new Point(ax + t1 * dx.Value, ay + t1 * dy);
             return true;
         }
 
         public static bool ConnectEdge(Edge edge, double x0, double y0, double x1, double y1)
         {
-            var v1 = edge.Points[1];
+            Point v1 = edge.Points[1];
             if (v1 != null) return true;
 
-            var v0 = edge.Points[0];
-            var left = edge.Left;
-            var right = edge.Right;
-            var lx = left.X;
-            var ly = left.Y;
-            var rx = right.X;
-            var ry = right.Y;
-            var fx = (lx + rx) / 2;
-            var fy = (ly + ry) / 2;
+            Point v0 = edge.Points[0];
+            Point left = edge.Left;
+            Point right = edge.Right;
+            double lx = left.X;
+            double ly = left.Y;
+            double rx = right.X;
+            double ry = right.Y;
+            double fx = (lx + rx) / 2;
+            double fy = (ly + ry) / 2;
             double fm;
             double fb;
 
@@ -212,7 +212,7 @@ namespace D3Voronoi
 
         public static void ClipEdges(ref List<Edge> edges, double x0, double y0, double x1, double y1)
         {
-            var i = edges.Count;
+            int i = edges.Count;
             Edge edge;
 
             while (i-- > 0)

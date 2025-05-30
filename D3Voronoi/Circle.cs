@@ -11,31 +11,31 @@ namespace D3Voronoi
         public static RedBlackTree FirstCircle;
         public static void AttachCircle(ref RedBlackTree circles, RedBlackTree arc)
         {
-            var lArc = arc.P;
-            var rArc = arc.N;
+            RedBlackTree lArc = arc.P;
+            RedBlackTree rArc = arc.N;
 
             if (lArc == null || rArc == null) return;
 
-            var lSite = lArc.Site;
-            var cSite = arc.Site;
-            var rSite = rArc.Site;
+            Point lSite = lArc.Site;
+            Point cSite = arc.Site;
+            Point rSite = rArc.Site;
 
             if (lSite == rSite) return;
 
-            var bx = cSite.X;
-            var by = cSite.Y;
-            var ax = lSite.X - bx;
-            var ay = lSite.Y - by;
-            var cx = rSite.X - bx;
-            var cy = rSite.Y - by;
+            double bx = cSite.X;
+            double by = cSite.Y;
+            double ax = lSite.X - bx;
+            double ay = lSite.Y - by;
+            double cx = rSite.X - bx;
+            double cy = rSite.Y - by;
 
-            var d = 2 * (ax * cy - ay * cx);
+            double d = 2 * (ax * cy - ay * cx);
             if (d >= -Diagram.Epsilon2) return;
 
-            var ha = ax * ax + ay * ay;
-            var hc = cx * cx + cy * cy;
-            var x = (cy * ha - ay * hc) / d;
-            var y = (ax * hc - cx * ha) / d;
+            double ha = ax * ax + ay * ay;
+            double hc = cx * cx + cy * cy;
+            double x = (cy * ha - ay * hc) / d;
+            double y = (ax * hc - cx * ha) / d;
 
             RedBlackTree circle = null;
             if (Circle.CirclePool.Any())
@@ -56,7 +56,7 @@ namespace D3Voronoi
             arc.Circle = circle;
 
             RedBlackTree before = null;
-            var node = circles._;
+            RedBlackTree node = circles._;
 
             while (node != null)
             {
@@ -78,7 +78,7 @@ namespace D3Voronoi
 
         public static void DetachCircle(ref RedBlackTree circles, RedBlackTree arc)
         {
-            var circle = arc.Circle;
+            RedBlackTree circle = arc.Circle;
             if (circle != null)
             {
                 if (circle.P == null)

@@ -17,8 +17,8 @@ namespace D3Voronoi
         {
             //Lexicographic
             sitesList = sitesList.OrderByDescending(p => p.Y).ThenByDescending(p => p.X).ToList();
-            var sitesLinkedList = new LinkedList<Point>(sitesList.ToArray());
-            var site = sitesLinkedList.Last();
+            LinkedList<Point> sitesLinkedList = new LinkedList<Point>(sitesList.ToArray());
+            Point site = sitesLinkedList.Last();
             sitesLinkedList.Remove(site);
             double x = double.MaxValue;
             double y = double.MaxValue;
@@ -58,10 +58,10 @@ namespace D3Voronoi
 
             if (extent != null)
             {
-                var x0 = +extent.X;
-                var y0 = +extent.Y;
-                var x1 = +extent.Width;
-                var y1 = +extent.Height;
+                double x0 = +extent.X;
+                double y0 = +extent.Y;
+                double x1 = +extent.Width;
+                double y1 = +extent.Height;
                 Edge.ClipEdges(ref Edges, x0, y0, x1, y1);
                 Cell.ClipCells(ref Cells, ref Edges, x0, y0, x1, y1);
             }
@@ -76,7 +76,7 @@ namespace D3Voronoi
 
         public List<Polygon> Polygons()
         {
-            var edges = Edges;
+            List<Edge> edges = Edges;
             return Cells.Select(cell => new Polygon()
             {
                 Points = cell.Value.HalfEdges.Select((i, h) => Cell.CellHalfedgeStart(cell.Value, edges[i])).ToList(),
@@ -87,18 +87,18 @@ namespace D3Voronoi
         public List<Point[]> Triangles()
         {
             List<Point[]> triangles = new List<Point[]>();
-            var edges = Edges;
+            List<Edge> edges = Edges;
 
-            for (var i = 0; i < Cells.Count; i++)
+            for (int i = 0; i < Cells.Count; i++)
             {
-                var cell = Cells[i];
-                var site = cell.Site;
-                var halfedges = cell.HalfEdges;
-                var j = -1;
-                var m = halfedges.Count;
+                Cell cell = Cells[i];
+                Point site = cell.Site;
+                List<int> halfedges = cell.HalfEdges;
+                int j = -1;
+                int m = halfedges.Count;
                 Point s0;
-                var e1 = edges[halfedges[m - 1]];
-                var s1 = e1.Left == site ? e1.Right : e1.Left;
+                Edge e1 = edges[halfedges[m - 1]];
+                Point s1 = e1.Left == site ? e1.Right : e1.Left;
 
                 while (++j < m)
                 {

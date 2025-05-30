@@ -10,7 +10,7 @@ namespace D3Voronoi
         public List<int> HalfEdges;
         public static Cell CreateCell(ref Dictionary<int, Cell> cells, Point site)
         {
-            var cell = new Cell()
+            Cell cell = new Cell()
             {
                 Site = site,
                 HalfEdges = new List<int>()
@@ -22,9 +22,9 @@ namespace D3Voronoi
 
         private static double CellHalfEdgeAngle(Cell cell, Edge edge)
         {
-            var site = cell.Site;
-            var va = edge.Left;
-            var vb = edge.Right;
+            Point site = cell.Site;
+            Point va = edge.Left;
+            Point vb = edge.Right;
 
             if (site == vb)
             {
@@ -61,17 +61,17 @@ namespace D3Voronoi
 
         public static void SortCellHalfedges(ref Dictionary<int, Cell> cells, List<Edge> edges)
         {
-            for (var i = 0; i < cells.Count; ++i)
+            for (int i = 0; i < cells.Count; ++i)
             {
                 Cell cell = cells[i];
                 List<int> halfedges = cell.HalfEdges;
-                var j = 0;
-                var m = halfedges.Count;
+                int j = 0;
+                int m = halfedges.Count;
 
                 if (cell != null && m > 0)
                 {
-                    var index = new int[m];
-                    var array = new double[m];
+                    int[] index = new int[m];
+                    double[] array = new double[m];
                     for (j = 0; j < m; ++j)
                     {
                         index[j] = j;
@@ -79,7 +79,7 @@ namespace D3Voronoi
                     }
                     Array.Sort(array, index);
                     Array.Reverse(index);
-                    var arrayD = new int[m];
+                    int[] arrayD = new int[m];
                     for (j = 0; j < m; ++j)
                     {
                         arrayD[j] = halfedges[index[j]];
@@ -95,7 +95,7 @@ namespace D3Voronoi
 
         public static void ClipCells(ref Dictionary<int, Cell> cells, ref List<Edge> edges, double x0, double y0, double x1, double y1)
         {
-            var nCells = cells.Count;
+            int nCells = cells.Count;
             int iCell;
             Cell cell;
             Point site;
@@ -141,13 +141,13 @@ namespace D3Voronoi
                         startY = start.Y;
                         if (Math.Abs(endX - startX) > Diagram.Epsilon || Math.Abs(endY - startY) > Diagram.Epsilon)
                         {
-                            var point = Math.Abs(endX - x0) < Diagram.Epsilon && y1 - endY > Diagram.Epsilon ? new Point(x0, Math.Abs(startX - x0) < Diagram.Epsilon ? startY : y1) :
+                            Point point = Math.Abs(endX - x0) < Diagram.Epsilon && y1 - endY > Diagram.Epsilon ? new Point(x0, Math.Abs(startX - x0) < Diagram.Epsilon ? startY : y1) :
                             Math.Abs(endY - y1) < Diagram.Epsilon && x1 - endX > Diagram.Epsilon ? new Point(Math.Abs(startY - y1) < Diagram.Epsilon ? startX : x1, y1) :
                             Math.Abs(endX - x1) < Diagram.Epsilon && endY - y0 > Diagram.Epsilon ? new Point(x1, Math.Abs(startX - x1) < Diagram.Epsilon ? startY : y0) :
                             Math.Abs(endY - y0) < Diagram.Epsilon && endX - x0 > Diagram.Epsilon ? new Point(Math.Abs(startY - y0) < Diagram.Epsilon ? startX : x0, y0) :
                             null;
 
-                            var newEdge = Edge.CreateBorderEdge(site, end, point);
+                            Edge newEdge = Edge.CreateBorderEdge(site, end, point);
                             edges.Add(newEdge);
                             halfedges.Insert(iHalfedge, edges.Count - 1);
                             ++nHalfedges;
@@ -159,8 +159,8 @@ namespace D3Voronoi
                 }
             }
 
-            // If there weren’t any edges, have the closest site cover the extent.
-            // It doesn’t matter which corner of the extent we measure!
+            // If there weren't any edges, have the closest site cover the extent.
+            // It doesn't matter which corner of the extent we measure!
             if (cover)
             {
                 double dx;
@@ -187,10 +187,10 @@ namespace D3Voronoi
 
                 if (coverCell != null)
                 {
-                    var v00 = new Point(x0, y0);
-                    var v01 = new Point(x0, y1);
-                    var v11 = new Point(x1, y1);
-                    var v10 = new Point(x1, y0);
+                    Point v00 = new Point(x0, y0);
+                    Point v01 = new Point(x0, y1);
+                    Point v11 = new Point(x1, y1);
+                    Point v10 = new Point(x1, y0);
 
 
                     edges.Add(Edge.CreateBorderEdge(site = coverCell.Site, v00, v01));

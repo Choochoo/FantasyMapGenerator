@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using D3Voronoi;
+﻿using D3Voronoi;
 using MathNet.Numerics.Statistics;
 using Priority_Queue;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TerrainGenerator
 {
@@ -47,7 +47,7 @@ namespace TerrainGenerator
         {
             x1 = 0;
             x2 = 0;
-            var w = 2.0;
+            double w = 2.0;
             while (w >= 1)
             {
                 x1 = Runif(-1f, 1f);
@@ -67,11 +67,11 @@ namespace TerrainGenerator
         /// <returns>An array of randomly distributed points.</returns>
         public Point[] GeneratePoints(int n, Extent extent)
         {
-            var pts = new Point[n];
-            for (var i = 0; i < n; i++)
+            Point[] pts = new Point[n];
+            for (int i = 0; i < n; i++)
             {
-                var x = (_random.NextDouble() - 0.5) * extent.Width;
-                var y = (_random.NextDouble() - 0.5) * extent.Height;
+                double x = (_random.NextDouble() - 0.5) * extent.Width;
+                double y = (_random.NextDouble() - 0.5) * extent.Height;
                 pts[i] = new Point(x, y);
             }
             return pts;
@@ -85,7 +85,7 @@ namespace TerrainGenerator
         /// <returns>A Mesh object with optimally distributed vertices and connectivity information.</returns>
         public Mesh GenerateGoodMesh(int n, Extent extent)
         {
-            var pts = GenerateGoodPoints(n, extent);
+            Point[] pts = GenerateGoodPoints(n, extent);
             return MakeMesh(pts, extent);
         }
 
@@ -97,7 +97,7 @@ namespace TerrainGenerator
         /// <returns>An array of optimally distributed points.</returns>
         private Point[] GenerateGoodPoints(int n, Extent extent)
         {
-            var pts = GeneratePoints(n, extent);
+            Point[] pts = GeneratePoints(n, extent);
             Array.Sort(pts, (a, b) => a.X.CompareTo(b.X));
             return ImprovePoints(pts, extent, 1);
         }
@@ -113,12 +113,12 @@ namespace TerrainGenerator
         public double[] GenerateCoast(ref int[] downhill, ref Mesh mesh, int npts, Extent extent)
         {
             mesh = GenerateGoodMesh(npts, extent);
-            var h = Add(mesh.Vxs.Length,
+            double[] h = Add(mesh.Vxs.Length,
                 Slope(mesh, RandomVector(4)),
                 Cone(mesh, Runif(-1, -1)),
                 Mountains(mesh, 50)
                 );
-            for (var i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 h = Relax(mesh, h);
             }
@@ -137,8 +137,8 @@ namespace TerrainGenerator
         /// <returns>A Point representing the centroid of the input points.</returns>
         private Point Centroid(List<Point> pts)
         {
-            var x = 0d;
-            var y = 0d;
+            double x = 0d;
+            double y = 0d;
             foreach (Point t in pts)
             {
                 x += t.X;
@@ -157,13 +157,13 @@ namespace TerrainGenerator
         public Point[] ImprovePoints(Point[] pts, Extent extent, int n = 1)
         {
             extent = extent == null ? Extent.DefaultExtent : extent;
-            for (var i = 0; i < n; i++)
+            for (int i = 0; i < n; i++)
             {
                 pts = Voronoi(extent).Polygons(pts).Select(p => Centroid(p.Points)).ToArray();
             }
             return pts;
         }
-        
+
         /// <summary>
         /// Creates a Voronoi diagram generator configured for the specified extent.
         /// </summary>
@@ -172,9 +172,9 @@ namespace TerrainGenerator
         public Voronoi Voronoi(Extent extent)
         {
             extent = extent == null ? Extent.DefaultExtent : extent;
-            var w = extent.Width / 2d;
-            var h = extent.Height / 2d;
-            var newExtent = new Extent(-w, -h, w, h);
+            double w = extent.Width / 2d;
+            double h = extent.Height / 2d;
+            Extent newExtent = new Extent(-w, -h, w, h);
             return new Voronoi(newExtent);
         }
 
@@ -186,21 +186,21 @@ namespace TerrainGenerator
         /// <returns>A Mesh object containing vertices, edges, adjacency information, and triangulation data.</returns>
         public Mesh MakeMesh(Point[] pts, Extent extent)
         {
-            var vor = Voronoi(extent).VoronoiDiagram(pts);
-            var vxs = new List<Point>();
-            var vxids = new Dictionary<string, int>();
-            var adj = new Dictionary<int, List<int>>();
-            var edges = new List<MapEdge>();
+            Diagram vor = Voronoi(extent).VoronoiDiagram(pts);
+            List<Point> vxs = new List<Point>();
+            Dictionary<string, int> vxids = new Dictionary<string, int>();
+            Dictionary<int, List<int>> adj = new Dictionary<int, List<int>>();
+            List<MapEdge> edges = new List<MapEdge>();
 
-            var tris = new Dictionary<int, List<Point>>();
-            var counter = 0;
-            foreach (var e in vor.Edges)
+            Dictionary<int, List<Point>> tris = new Dictionary<int, List<Point>>();
+            int counter = 0;
+            foreach (Edge e in vor.Edges)
             {
                 if (e == null)
                     continue;
 
                 int e0 = 0;
-                var foundE0 = vxids.TryGetValue(e.Points[0].ToString(), out e0);
+                bool foundE0 = vxids.TryGetValue(e.Points[0].ToString(), out e0);
                 if (!foundE0)
                 {
                     e0 = vxs.Count;
@@ -216,7 +216,7 @@ namespace TerrainGenerator
                 }
 
                 int e1 = 0;
-                var foundE1 = vxids.TryGetValue(e.Points[1].ToString(), out e1);
+                bool foundE1 = vxids.TryGetValue(e.Points[1].ToString(), out e1);
                 if (!foundE1)
                 {
                     e1 = vxs.Count;
@@ -225,7 +225,7 @@ namespace TerrainGenerator
                 }
 
                 List<int> adj0 = null;
-                var foundadj0 = adj.TryGetValue(e0, out adj0);
+                bool foundadj0 = adj.TryGetValue(e0, out adj0);
                 if (!foundadj0)
                 {
                     adj0 = new List<int>();
@@ -235,7 +235,7 @@ namespace TerrainGenerator
                 adj[e0] = adj0;
 
                 List<int> adj1 = null;
-                var foundadj1 = adj.TryGetValue(e1, out adj1);
+                bool foundadj1 = adj.TryGetValue(e1, out adj1);
                 if (!foundadj1)
                 {
                     adj1 = new List<int>();
@@ -257,7 +257,7 @@ namespace TerrainGenerator
                 }
 
                 List<Point> secondTri = null;
-                var foundSecond = tris.TryGetValue(e1, out secondTri);
+                bool foundSecond = tris.TryGetValue(e1, out secondTri);
                 if (!foundSecond)
                 {
                     secondTri = new List<Point>();
@@ -282,7 +282,7 @@ namespace TerrainGenerator
                 });
                 counter++;
             }
-            var mesh = new Mesh()
+            Mesh mesh = new Mesh()
             {
                 Pts = pts,
                 Vxs = vxs.ToArray(),
@@ -304,10 +304,10 @@ namespace TerrainGenerator
         /// <returns>A new array with the sum of all input arrays at each position.</returns>
         public double[] Add(int count, params double[][] values)
         {
-            var newvals = new double[count];
-            for (var i = 0; i < count; i++)
+            double[] newvals = new double[count];
+            for (int i = 0; i < count; i++)
             {
-                for (var j = 0; j < values.Length; j++)
+                for (int j = 0; j < values.Length; j++)
                 {
                     newvals[i] += values[j].ElementAt(i);
                 }
@@ -325,18 +325,18 @@ namespace TerrainGenerator
         /// <returns>An array of height values representing mountain features.</returns>
         public double[] Mountains(Mesh mesh, int n, double r = 0.05f)
         {
-            var mounts = new List<Point>();
-            for (var i = 0; i < n; i++)
+            List<Point> mounts = new List<Point>();
+            for (int i = 0; i < n; i++)
             {
                 mounts.Add(new Point(mesh.Extent.Width * (_random.NextDouble() - 0.5f), mesh.Extent.Height * (_random.NextDouble() - 0.5f)));
             }
-            var newvals = new double[mesh.Vxs.Length];
-            for (var i = 0; i < mesh.Vxs.Length; i++)
+            double[] newvals = new double[mesh.Vxs.Length];
+            for (int i = 0; i < mesh.Vxs.Length; i++)
             {
-                var p = mesh.Vxs[i];
-                for (var j = 0; j < n; j++)
+                Point p = mesh.Vxs[i];
+                for (int j = 0; j < n; j++)
                 {
-                    var m = mounts[j];
+                    Point m = mounts[j];
                     newvals[i] +=
                         (double)
                             Math.Pow(Math.Exp((double)(-((p.X - m.X) * (p.X - m.X) + (p.Y - m.Y) * (p.Y - m.Y)) / (2 * r * r))),
@@ -354,8 +354,8 @@ namespace TerrainGenerator
         /// <returns>An array of height values representing the linear slope.</returns>
         public double[] Slope(Mesh mesh, Point direction)
         {
-            var output = new List<double>();
-            foreach (var f in mesh.Vxs)
+            List<double> output = new List<double>();
+            foreach (Point f in mesh.Vxs)
             {
                 output.Add(f.X * direction.X + f.Y * direction.Y);
             }
@@ -371,8 +371,8 @@ namespace TerrainGenerator
         /// <returns>An array of height values representing the conical distribution.</returns>
         public double[] Cone(Mesh mesh, double slope)
         {
-            var output = new List<double>();
-            foreach (var f in mesh.Vxs)
+            List<double> output = new List<double>();
+            foreach (Point f in mesh.Vxs)
             {
                 output.Add((double)Math.Pow((double)(f.X * f.X + f.Y * f.Y), 0.5) * slope);
             }
@@ -386,10 +386,10 @@ namespace TerrainGenerator
         /// <returns>An array of normalized height values between 0 and 1.</returns>
         public double[] Normalize(double[] heights)
         {
-            var lo = heights.Min();
-            var hi = heights.Max();
-            var output = new List<double>();
-            foreach (var f in heights)
+            double lo = heights.Min();
+            double hi = heights.Max();
+            List<double> output = new List<double>();
+            foreach (double f in heights)
             {
                 output.Add((f - lo) / (hi - lo));
             }
@@ -403,11 +403,11 @@ namespace TerrainGenerator
         /// <returns>An array of height values with enhanced peak characteristics.</returns>
         public double[] Peaky(double[] heights)
         {
-            var output = new List<double>();
-            var normalized = Normalize(heights);
+            List<double> output = new List<double>();
+            double[] normalized = Normalize(heights);
             for (int i = 0; i < normalized.Length; i++)
             {
-                var f = normalized[i];
+                double f = normalized[i];
                 output.Add((double)Math.Sqrt((double)f));
             }
             return output.ToArray();
@@ -422,17 +422,17 @@ namespace TerrainGenerator
         /// <returns>An array of smoothed height values.</returns>
         public double[] Relax(Mesh mesh, double[] heights)
         {
-            var output = new double[heights.Length];
-            for (var i = 0; i < heights.Length; i++)
+            double[] output = new double[heights.Length];
+            for (int i = 0; i < heights.Length; i++)
             {
-                var nbs = Neighbours(mesh, i);
+                List<int> nbs = Neighbours(mesh, i);
                 if (nbs.Count < 3)
                 {
                     output[i] = 0;
                     continue;
                 }
-                var avg = new List<double>();
-                foreach (var nb in nbs)
+                List<double> avg = new List<double>();
+                foreach (int nb in nbs)
                     avg.Add(heights[nb]);
 
                 output[i] = avg.Average();
@@ -448,9 +448,9 @@ namespace TerrainGenerator
         /// <returns>A list of neighboring vertex indices.</returns>
         public List<int> Neighbours(Mesh mesh, int index)
         {
-            var onbs = mesh.Adj[index];
-            var nbs = new List<int>();
-            for (var i = 0; i < onbs.Count; i++)
+            List<int> onbs = mesh.Adj[index];
+            List<int> nbs = new List<int>();
+            for (int i = 0; i < onbs.Count; i++)
             {
                 nbs.Add(onbs[i]);
             }
@@ -464,8 +464,8 @@ namespace TerrainGenerator
         /// <returns>A Point representing a random direction vector.</returns>
         public Point RandomVector(int scale)
         {
-            var xOut = 0d;
-            var yOut = 0d;
+            double xOut = 0d;
+            double yOut = 0d;
             RNorm(out xOut, out yOut);
             return new Point(scale * xOut, scale * yOut);
         }
@@ -477,7 +477,7 @@ namespace TerrainGenerator
         /// <returns>An array containing the X and Y components of the random vector.</returns>
         public double[] RandomDoubles(int scale)
         {
-            var vector = RandomVector(scale);
+            Point vector = RandomVector(scale);
             return new[] { (double)vector.X, (double)vector.Y };
         }
 
@@ -506,10 +506,10 @@ namespace TerrainGenerator
         /// <returns>A list of contour paths, where each path is a list of connected points.</returns>
         public List<List<Point>> Contour(ref Mesh mesh, ref double[] heights, int level = 0)
         {
-            var edges = new List<Point[]>();
-            for (var i = 0; i < mesh.Edges.Count; i++)
+            List<Point[]> edges = new List<Point[]>();
+            for (int i = 0; i < mesh.Edges.Count; i++)
             {
-                var e = mesh.Edges[i];
+                MapEdge e = mesh.Edges[i];
                 if (e.Right == null) continue;
                 if (IsNearEdge(mesh, e.Spot1) || IsNearEdge(mesh, e.Spot2)) continue;
                 if ((heights[e.Spot1] > level && heights[e.Spot2] <= level) || (heights[e.Spot2] > level && heights[e.Spot1] <= level))
@@ -528,10 +528,10 @@ namespace TerrainGenerator
         /// <returns>True if the vertex is near the mesh boundary, false otherwise.</returns>
         public bool IsNearEdge(Mesh mesh, int i)
         {
-            var x = mesh.Vxs[i].X;
-            var y = mesh.Vxs[i].Y;
-            var w = mesh.Extent.Width;
-            var h = mesh.Extent.Height;
+            double x = mesh.Vxs[i].X;
+            double y = mesh.Vxs[i].Y;
+            double w = mesh.Extent.Width;
+            double h = mesh.Extent.Height;
             return x < -0.45f * w || x > 0.45f * w || y < -0.45f * h || y > 0.45f * h;
         }
 
@@ -543,12 +543,12 @@ namespace TerrainGenerator
         /// <returns>A list of continuous paths formed by connecting the segments.</returns>
         public List<List<Point>> MergeSegments(List<Point[]> segs)
         {
-            var adj = new Dictionary<Point, List<Point>>();
-            for (var i = 0; i < segs.Count; i++)
+            Dictionary<Point, List<Point>> adj = new Dictionary<Point, List<Point>>();
+            for (int i = 0; i < segs.Count; i++)
             {
-                var seg = segs[i];
+                Point[] seg = segs[i];
                 List<Point> a0 = null;
-                var foundA0 = adj.TryGetValue(seg[0], out a0);
+                bool foundA0 = adj.TryGetValue(seg[0], out a0);
                 if (!foundA0)
                 {
                     a0 = new List<Point>();
@@ -556,7 +556,7 @@ namespace TerrainGenerator
                 }
 
                 List<Point> a1 = null;
-                var foundA1 = adj.TryGetValue(seg[0], out a1);
+                bool foundA1 = adj.TryGetValue(seg[0], out a1);
                 if (!foundA1)
                 {
                     a1 = new List<Point>();
@@ -567,14 +567,14 @@ namespace TerrainGenerator
                 adj[seg[0]] = a0;
                 adj[seg[1]] = a1;
             }
-            var done = new bool[segs.Count];
-            var paths = new List<List<Point>>();
+            bool[] done = new bool[segs.Count];
+            List<List<Point>> paths = new List<List<Point>>();
             List<Point> path = null;
             while (true)
             {
                 if (path == null)
                 {
-                    for (var i = 0; i < segs.Count; i++)
+                    for (int i = 0; i < segs.Count; i++)
                     {
                         if (done[i]) continue;
                         done[i] = true;
@@ -583,8 +583,8 @@ namespace TerrainGenerator
                     }
                     if (path == null) break;
                 }
-                var changed = false;
-                for (var i = 0; i < segs.Count; i++)
+                bool changed = false;
+                for (int i = 0; i < segs.Count; i++)
                 {
                     if (done[i]) continue;
                     if (adj[path[0]].Count == 2 && segs[i][0] == path[0])
@@ -629,14 +629,14 @@ namespace TerrainGenerator
         /// <returns>An array of height values adjusted relative to the new sea level.</returns>
         public double[] SetSeaLevel(double[] heights, double q)
         {
-            var output = new double[heights.Length];
-            var doubleHeights = heights.Select(h => h);
-            var delta = doubleHeights.Quantile(q);
-            for (var i = 0; i < heights.Length; i++)
+            double[] output = new double[heights.Length];
+            double[] doubleHeights = heights.Select(h => h).ToArray();
+            double delta = doubleHeights.Quantile(q);
+            for (int i = 0; i < heights.Length; i++)
             {
                 output[i] = heights[i] - delta;
             }
-            return output.ToArray();
+            return output;
         }
 
         /// <summary>
@@ -649,9 +649,9 @@ namespace TerrainGenerator
         /// <returns>An array of height values with sinks filled to enable proper water flow.</returns>
         public double[] FillSinks(ref Mesh mesh, double[] heights, double epsilon = 1e-5f)
         {
-            var infinity = int.MaxValue;
-            var output = new double[heights.Length];
-            for (var i = 0; i < output.Length; i++)
+            double infinity = int.MaxValue;
+            double[] output = new double[heights.Length];
+            for (int i = 0; i < output.Length; i++)
             {
                 if (IsNearEdge(mesh, i))
                 {
@@ -664,12 +664,12 @@ namespace TerrainGenerator
             }
             while (true)
             {
-                var changed = false;
-                for (var i = 0; i < output.Length; i++)
+                bool changed = false;
+                for (int i = 0; i < output.Length; i++)
                 {
                     if (output[i] == heights[i]) continue;
-                    var nbs = Neighbours(mesh, i);
-                    for (var j = 0; j < nbs.Count; j++)
+                    List<int> nbs = Neighbours(mesh, i);
+                    for (int j = 0; j < nbs.Count; j++)
                     {
                         if (heights[i] >= output[nbs[j]] + epsilon)
                         {
@@ -677,7 +677,7 @@ namespace TerrainGenerator
                             changed = true;
                             break;
                         }
-                        var oh = output[nbs[j]] + epsilon;
+                        double oh = output[nbs[j]] + epsilon;
                         if ((output[i] > oh) && (oh > heights[i]))
                         {
                             output[i] = oh;
@@ -702,7 +702,7 @@ namespace TerrainGenerator
         public double[] DoErosion(ref Mesh mesh, ref int[] downhill, double[] heights, double amount, int n = 1)
         {
             heights = FillSinks(ref mesh, heights);
-            for (var i = 0; i < n; i++)
+            for (int i = 0; i < n; i++)
             {
                 heights = Erode(mesh, ref downhill, heights, amount);
                 heights = FillSinks(ref mesh, heights);
@@ -720,10 +720,10 @@ namespace TerrainGenerator
         /// <returns>An array of height values after one erosion step.</returns>
         private double[] Erode(Mesh mesh, ref int[] downhill, double[] h, double amount)
         {
-            var er = ErosionRate(mesh, ref downhill, h);
-            var output = new double[h.Length];
-            var maxr = er.Max();
-            for (var i = 0; i < h.Length; i++)
+            double[] er = ErosionRate(mesh, ref downhill, h);
+            double[] output = new double[h.Length];
+            double maxr = er.Max();
+            for (int i = 0; i < h.Length; i++)
             {
                 output[i] = h[i] - amount * (er[i] / maxr);
             }
@@ -740,14 +740,14 @@ namespace TerrainGenerator
         /// <returns>An array of erosion rates for each vertex.</returns>
         public double[] ErosionRate(Mesh mesh, ref int[] downhill, double[] h)
         {
-            var flux = GetFlux(ref mesh, ref downhill, h);
-            var slope = GetSlope(mesh, h);
-            var output = new double[h.Length];
-            for (var i = 0; i < h.Length; i++)
+            double[] flux = GetFlux(ref mesh, ref downhill, h);
+            double[] slope = GetSlope(mesh, h);
+            double[] output = new double[h.Length];
+            for (int i = 0; i < h.Length; i++)
             {
-                var river = Math.Sqrt(flux[i]) * slope[i];
-                var creep = slope[i] * slope[i];
-                var total = 1000 * river + creep;
+                double river = Math.Sqrt(flux[i]) * slope[i];
+                double creep = slope[i] * slope[i];
+                double total = 1000 * river + creep;
                 total = total > 200 ? 200 : total;
                 output[i] = total;
             }
@@ -764,10 +764,10 @@ namespace TerrainGenerator
         /// <returns>An array of flux values indicating water flow accumulation at each vertex.</returns>
         private double[] GetFlux(ref Mesh mesh, ref int[] downhill, double[] h)
         {
-            var dh = Downhill(mesh, ref downhill, h);
-            var idxs = new List<int>();
-            var output = new double[h.Length];
-            for (var i = 0; i < h.Length; i++)
+            int[] dh = Downhill(mesh, ref downhill, h);
+            List<int> idxs = new List<int>();
+            double[] output = new double[h.Length];
+            for (int i = 0; i < h.Length; i++)
             {
                 idxs.Add(i);
                 output[i] = 1f / h.Length;
@@ -780,9 +780,9 @@ namespace TerrainGenerator
                     return -1;
                 return 0;
             });
-            for (var i = 0; i < h.Length; i++)
+            for (int i = 0; i < h.Length; i++)
             {
-                var j = idxs[i];
+                int j = idxs[i];
                 if (j >= 0 && j < dh.Length && dh[j] >= 0 && dh[j] < output.Length)
                 {
                     output[dh[j]] += output[j];
@@ -799,15 +799,15 @@ namespace TerrainGenerator
         /// <returns>An array of slope magnitudes for each vertex.</returns>
         private double[] GetSlope(Mesh mesh, double[] h)
         {
-            var output = new double[h.Length];
-            for (var i = 0; i < h.Length; i++)
+            double[] output = new double[h.Length];
+            for (int i = 0; i < h.Length; i++)
             {
-                var s = Trislope(mesh, h, i);
-                output[i] = (double)Math.Sqrt((double)(s.X * s.X + s.Y * s.Y));
+                Point s = Trislope(mesh, h, i);
+                output[i] = Math.Sqrt(s.X * s.X + s.Y * s.Y);
             }
             return output;
         }
-        
+
         /// <summary>
         /// Calculates the slope vector at a vertex using the three neighboring vertices.
         /// Uses linear interpolation across the triangle to determine the gradient.
@@ -818,20 +818,20 @@ namespace TerrainGenerator
         /// <returns>A Point representing the slope vector (gradient) at the vertex.</returns>
         public Point Trislope(Mesh mesh, double[] h, int i)
         {
-            var nbs = Neighbours(mesh, i);
+            List<int> nbs = Neighbours(mesh, i);
             if (nbs.Count != 3) return Point.Zero;
-            var p0 = mesh.Vxs[nbs[0]];
-            var p1 = mesh.Vxs[nbs[1]];
-            var p2 = mesh.Vxs[nbs[2]];
+            Point p0 = mesh.Vxs[nbs[0]];
+            Point p1 = mesh.Vxs[nbs[1]];
+            Point p2 = mesh.Vxs[nbs[2]];
 
-            var x1 = p1.X - p0.X;
-            var x2 = p2.X - p0.X;
-            var y1 = p1.Y - p0.Y;
-            var y2 = p2.Y - p0.Y;
+            double x1 = p1.X - p0.X;
+            double x2 = p2.X - p0.X;
+            double y1 = p1.Y - p0.Y;
+            double y2 = p2.Y - p0.Y;
 
-            var det = x1 * y2 - x2 * y1;
-            var h1 = h[nbs[1]] - h[nbs[0]];
-            var h2 = h[nbs[2]] - h[nbs[0]];
+            double det = x1 * y2 - x2 * y1;
+            double h1 = h[nbs[1]] - h[nbs[0]];
+            double h2 = h[nbs[2]] - h[nbs[0]];
 
             return new Point((y2 * h1 - y1 * h2) / det, (-x2 * h1 + x1 * h2) / det);
         }
@@ -847,18 +847,18 @@ namespace TerrainGenerator
         {
             if (downhill != null) return downhill;
 
-            var downs = new int[h.Length];
-            for (var i = 0; i < h.Length; i++)
+            int[] downs = new int[h.Length];
+            for (int i = 0; i < h.Length; i++)
             {
                 if (Isedge(mesh, i))
                 {
                     downs[i] = -2;
                     continue;
                 }
-                var best = -1;
-                var besth = h[i];
-                var nbs = Neighbours(mesh, i);
-                for (var j = 0; j < nbs.Count; j++)
+                int best = -1;
+                double besth = h[i];
+                List<int> nbs = Neighbours(mesh, i);
+                for (int j = 0; j < nbs.Count; j++)
                 {
                     if (h[nbs[j]] < besth)
                     {
@@ -893,18 +893,17 @@ namespace TerrainGenerator
         /// <returns>An array of height values with cleaned coastlines.</returns>
         public double[] CleanCoast(Mesh mesh, double[] h, int iters)
         {
-            for (var iter = 0; iter < iters; iter++)
+            for (int iter = 0; iter < iters; iter++)
             {
-                //var changed = 0;
-                var newh = new double[h.Length];
-                for (var i = 0; i < h.Length; i++)
+                double[] newh = new double[h.Length];
+                for (int i = 0; i < h.Length; i++)
                 {
                     newh[i] = h[i];
-                    var nbs = Neighbours(mesh, i);
+                    List<int> nbs = Neighbours(mesh, i);
                     if (h[i] <= 0 || nbs.Count != 3) continue;
-                    var count = 0;
+                    int count = 0;
                     double best = -double.MaxValue;
-                    for (var j = 0; j < nbs.Count; j++)
+                    for (int j = 0; j < nbs.Count; j++)
                     {
                         if (h[nbs[j]] > 0)
                         {
@@ -912,23 +911,22 @@ namespace TerrainGenerator
                         }
                         else if (h[nbs[j]] > best)
                         {
-                            best = h[nbs.ElementAt(j)];
+                            best = h[nbs[j]];
                         }
                     }
                     if (count > 1) continue;
                     newh[i] = best / 2;
-                    //changed++;
                 }
                 h = newh;
                 newh = new double[h.Length];
-                for (var i = 0; i < h.Length; i++)
+                for (int i = 0; i < h.Length; i++)
                 {
                     newh[i] = h[i];
-                    var nbs = Neighbours(mesh, i);
+                    List<int> nbs = Neighbours(mesh, i);
                     if (h[i] > 0 || nbs.Count != 3) continue;
-                    var count = 0;
+                    int count = 0;
                     double best = double.MaxValue;
-                    for (var j = 0; j < nbs.Count; j++)
+                    for (int j = 0; j < nbs.Count; j++)
                     {
                         if (h[nbs[j]] <= 0)
                         {
@@ -946,7 +944,7 @@ namespace TerrainGenerator
             }
             return h;
         }
-        
+
         /// <summary>
         /// Generates river paths by following water flow from high-flux areas downhill to the sea.
         /// Creates connected path segments that represent river networks based on water flow accumulation.
@@ -958,54 +956,54 @@ namespace TerrainGenerator
         /// <returns>A list of river paths, where each path is a list of connected points.</returns>
         public List<List<Point>> GetRivers(ref Mesh mesh, ref int[] downhill, ref double[] h, double limit)
         {
-            var dh = Downhill(mesh, ref downhill, h);
-            var flux = GetFlux(ref mesh, ref downhill, h);
-            var links = new List<Point[]>();
-            var above = 0;
-            for (var i = 0; i < h.Length; i++)
+            int[] dh = Downhill(mesh, ref downhill, h);
+            double[] flux = GetFlux(ref mesh, ref downhill, h);
+            List<Point[]> links = new List<Point[]>();
+            int above = 0;
+            for (int i = 0; i < h.Length; i++)
             {
                 if (h[i] > 0) above++;
             }
             limit *= above / (double)h.Length;
-            for (var i = 0; i < dh.Length; i++)
+            for (int i = 0; i < dh.Length; i++)
             {
                 if (IsNearEdge(mesh, i)) continue;
                 if (flux[i] > limit && h[i] > 0 && dh[i] >= 0)
                 {
-                    var up = mesh.Vxs[i];
-                    var down = mesh.Vxs[dh[i]];
+                    Point up = mesh.Vxs[i];
+                    Point down = mesh.Vxs[dh[i]];
                     if (h[dh[i]] > 0)
                     {
                         links.Add(new[] { up, down });
                     }
                     else
                     {
-                        var downV = new Point((up.X + down.X) / 2d, (up.Y + down.Y) / 2d);
+                        Point downV = new Point((up.X + down.X) / 2d, (up.Y + down.Y) / 2d);
                         links.Add(new[] { up, downV });
                     }
                 }
             }
 
-            var output = new List<List<Point>>();
-            var mergedSegments = MergeSegments(links);
-            foreach (var segment in mergedSegments)
+            List<List<Point>> output = new List<List<Point>>();
+            List<List<Point>> mergedSegments = MergeSegments(links);
+            foreach (List<Point> segment in mergedSegments)
                 output.Add(RelaxPath(segment));
 
             return output;
         }
-        
+
         /// <summary>
-        /// Smooths a path by applying weighted averaging to interior points.
-        /// Helps create more natural-looking curved paths for rivers and other features.
+        /// Smooths a path by applying a weighted average to intermediate points.
+        /// This reduces sharp corners and creates more natural-looking curves.
         /// </summary>
         /// <param name="path">The path to smooth, represented as a list of connected points.</param>
         /// <returns>A smoothed version of the input path.</returns>
         private List<Point> RelaxPath(List<Point> path)
         {
-            var newpath = new List<Point>() { path[0] };
-            for (var i = 1; i < path.Count - 1; i++)
+            List<Point> newpath = new List<Point>() { path[0] };
+            for (int i = 1; i < path.Count - 1; i++)
             {
-                var newpt = new Point(0.25f * path[i - 1].X + 0.5f * path[i].X + 0.25f * path[i + 1].X,
+                Point newpt = new Point(0.25f * path[i - 1].X + 0.5f * path[i].X + 0.25f * path[i + 1].X,
                     0.25f * path[i - 1].Y + 0.5f * path[i].Y + 0.25f * path[i + 1].Y);
 
                 newpath.Add(newpt);
@@ -1013,25 +1011,34 @@ namespace TerrainGenerator
             newpath.Add(path[path.Count - 1]);
             return newpath;
         }
-        
+
         /// <summary>
-        /// Creates a new CityRender object with generated terrain data and initialized city collections.
+        /// Creates and initializes a new CityRender instance with default properties.
         /// </summary>
-        /// <param name="downhill">Reference to downhill flow directions array.</param>
-        /// <param name="mesh">Reference to the mesh data structure.</param>
-        /// <param name="heights">Reference to height values array.</param>
-        /// <param name="extent">The spatial extent for terrain generation.</param>
-        /// <returns>A new CityRender object with initialized properties and empty city list.</returns>
+        /// <param name="downhill">Array containing downhill flow directions for each vertex.</param>
+        /// <param name="mesh">The terrain mesh structure.</param>
+        /// <param name="heights">Array of height values for each vertex.</param>
+        /// <param name="extent">The bounding area for the terrain.</param>
+        /// <returns>A new CityRender instance with initialized properties.</returns>
         public CityRender NewCityRender(ref int[] downhill, ref Mesh mesh, ref double[] heights, Extent extent)
         {
-            heights = heights != null ? heights : GenerateCoast(ref downhill, ref mesh, 4096, extent);
             return new CityRender()
             {
-                AreaProperties = new AreaProperties(),
-                Cities = new List<int>()
+                Cities = new List<int>(),
+                Score = new double[heights.Length],
+                Rivers = GetRivers(ref mesh, ref downhill, ref heights, Runif(0.01d, 0.1d)),
+                Coasts = Contour(ref mesh, ref heights, 0),
+                Territories = new double[heights.Length],
+                AreaProperties = new AreaProperties()
+                {
+                    NumberOfCities = 15,
+                    NumberOfTerritories = 5,
+                    FontSizeRegion = 20,
+                    FontSizeCity = 12
+                }
             };
         }
-        
+
         /// <summary>
         /// Calculates suitability scores for city placement at each vertex based on multiple factors.
         /// Considers water flow, distance from edges, and proximity to existing cities.
@@ -1043,11 +1050,11 @@ namespace TerrainGenerator
         /// <returns>An array of suitability scores for city placement at each vertex.</returns>
         public double[] CityScore(ref List<int> cities, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var score = GetFlux(ref mesh, ref downhill, h).ToList();
-            for (var i = 0; i < score.Count; i++)
+            List<double> score = GetFlux(ref mesh, ref downhill, h).ToList();
+            for (int i = 0; i < score.Count; i++)
                 score[i] = Math.Sqrt(score[i]);
 
-            for (var i = 0; i < h.Length; i++)
+            for (int i = 0; i < h.Length; i++)
             {
                 if (h[i] <= 0 || IsNearEdge(mesh, i))
                 {
@@ -1058,14 +1065,14 @@ namespace TerrainGenerator
                 score[i] += 0.01d / (1e-9d + Math.Abs(mesh.Vxs[i].Y) - mesh.Extent.Height / 2d);
 
 
-                for (var j = 0; j < cities.Count; j++)
+                for (int j = 0; j < cities.Count; j++)
                 {
                     score[i] -= 0.02d / (Distance(mesh, cities[j], i) + 1e-9d);
                 }
             }
             return score.ToArray();
         }
-        
+
         /// <summary>
         /// Calculates the Euclidean distance between two vertices in the mesh.
         /// </summary>
@@ -1075,11 +1082,11 @@ namespace TerrainGenerator
         /// <returns>The distance between the two vertices.</returns>
         private double Distance(Mesh mesh, int i, int j)
         {
-            var p = mesh.Vxs[i];
-            var q = mesh.Vxs[j];
+            Point p = mesh.Vxs[i];
+            Point q = mesh.Vxs[j];
             return Math.Sqrt((double)((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y)));
         }
-        
+
         /// <summary>
         /// Calculates a penalty score for label placement based on overlap with existing labels and map features.
         /// Used in label optimization to avoid overlapping text and ensure readable map labels.
@@ -1092,14 +1099,14 @@ namespace TerrainGenerator
         /// <returns>An integer penalty score, where higher values indicate worse placement.</returns>
         public int Penalty(PossibleLabelLocation label, Mesh mesh, List<PossibleLabelLocation> citylabels, List<int> cities, List<List<Point>>[] avoids)
         {
-            var pen = 0;
+            int pen = 0;
             if (label.X0 < -0.45d * mesh.Extent.Width) pen += 100;
             if (label.X1 > 0.45d * mesh.Extent.Width) pen += 100;
             if (label.Y0 < -0.45d * mesh.Extent.Height) pen += 100;
             if (label.Y1 > 0.45d * mesh.Extent.Height) pen += 100;
-            for (var i = 0; i < citylabels.Count; i++)
+            for (int i = 0; i < citylabels.Count; i++)
             {
-                var olabel = citylabels[i];
+                PossibleLabelLocation olabel = citylabels[i];
                 if (label.X0 < olabel.X1 && label.X1 > olabel.X0 &&
                     label.Y0 < olabel.Y1 && label.Y1 > olabel.Y0)
                 {
@@ -1107,23 +1114,23 @@ namespace TerrainGenerator
                 }
             }
 
-            for (var i = 0; i < cities.Count; i++)
+            for (int i = 0; i < cities.Count; i++)
             {
-                var c = mesh.Vxs[cities[i]];
+                Point c = mesh.Vxs[cities[i]];
                 if (label.X0 < c.X && label.X1 > c.X && label.Y0 < c.Y && label.Y1 > c.Y)
                 {
                     pen += 100;
                 }
             }
-            for (var i = 0; i < avoids.Length; i++)
+            for (int i = 0; i < avoids.Length; i++)
             {
-                var avoid = avoids[i];
-                for (var j = 0; j < avoid.Count; j++)
+                List<List<Point>> avoid = avoids[i];
+                for (int j = 0; j < avoid.Count; j++)
                 {
-                    var avpath = avoid[j];
-                    for (var k = 0; k < avpath.Count; k++)
+                    List<Point> avpath = avoid[j];
+                    for (int k = 0; k < avpath.Count; k++)
                     {
-                        var pt = avpath[k];
+                        Point pt = avpath[k];
                         if (pt.X > label.X0 && pt.X < label.X1 && pt.Y > label.Y0 && pt.Y < label.Y1)
                         {
                             pen++;
@@ -1133,7 +1140,7 @@ namespace TerrainGenerator
             }
             return pen;
         }
-        
+
         /// <summary>
         /// Calculates the centroid (geometric center) of a territory's land area.
         /// Used for determining optimal placement of territory labels and markers.
@@ -1146,10 +1153,10 @@ namespace TerrainGenerator
         /// <returns>A Point representing the centroid of the specified territory.</returns>
         public Point TerrCenter(Mesh mesh, double[] h, double[] terr, int city, bool landOnly)
         {
-            var x = 0d;
-            var y = 0d;
-            var n = 0;
-            for (var i = 0; i < terr.Length; i++)
+            double x = 0d;
+            double y = 0d;
+            int n = 0;
+            for (int i = 0; i < terr.Length; i++)
             {
                 if (terr[i] != city) continue;
                 if (landOnly && h[i] <= 0) continue;
@@ -1159,7 +1166,7 @@ namespace TerrainGenerator
             }
             return new Point(x / n, y / n);
         }
-        
+
         /// <summary>
         /// Generates border paths between different territories by finding edges that cross territory boundaries.
         /// Creates connected line segments that represent political or administrative boundaries.
@@ -1170,11 +1177,11 @@ namespace TerrainGenerator
         /// <returns>A list of border paths, where each path is a list of connected points.</returns>
         public List<List<Point>> GetBorders(ref Mesh mesh, ref CityRender cityRender, ref double[] h)
         {
-            var terr = cityRender.Territories;
-            var edges = new List<Point[]>();
-            for (var i = 0; i < mesh.Edges.Count; i++)
+            double[] terr = cityRender.Territories;
+            List<Point[]> edges = new List<Point[]>();
+            for (int i = 0; i < mesh.Edges.Count; i++)
             {
-                var e = mesh.Edges[i];
+                MapEdge e = mesh.Edges[i];
                 if (e.Right == null) continue;
                 if (IsNearEdge(mesh, e.Spot1) || IsNearEdge(mesh, e.Spot2)) continue;
                 if (h[e.Spot1] < 0 || h[e.Spot2] < 0) continue;
@@ -1184,14 +1191,14 @@ namespace TerrainGenerator
                 }
             }
 
-            var output = new List<List<Point>>();
-            var mergedSegments = MergeSegments(edges);
-            foreach (var segment in mergedSegments)
+            List<List<Point>> output = new List<List<Point>>();
+            List<List<Point>> mergedSegments = MergeSegments(edges);
+            foreach (List<Point> segment in mergedSegments)
                 output.Add(RelaxPath(segment));
 
             return output;
         }
-        
+
         /// <summary>
         /// Assigns territories to vertices using a flood-fill algorithm based on distance from cities.
         /// Creates territories by expanding from city centers until all land vertices are assigned.
@@ -1203,19 +1210,19 @@ namespace TerrainGenerator
         /// <returns>An array of territory assignments for each vertex.</returns>
         public double[] GetTerritories(ref CityRender cityRender, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var cities = cityRender.Cities;
-            var n = cityRender.AreaProperties.NumberOfTerritories;
+            List<int> cities = cityRender.Cities;
+            int n = cityRender.AreaProperties.NumberOfTerritories;
             if (n > cities.Count) n = cities.Count;
-            var flux = GetFlux(ref mesh, ref downhill, h);
-            var territories = new double[h.Length];
-            var queue = new SimplePriorityQueue<CityProperty>();
-            for (var i = 0; i < n; i++)
+            double[] flux = GetFlux(ref mesh, ref downhill, h);
+            double[] territories = new double[h.Length];
+            SimplePriorityQueue<CityProperty> queue = new SimplePriorityQueue<CityProperty>();
+            for (int i = 0; i < n; i++)
             {
                 territories[cities[i]] = cities[i];
-                var nbs = Neighbours(mesh, cities[i]);
-                for (var j = 0; j < nbs.Count; j++)
+                List<int> nbs = Neighbours(mesh, cities[i]);
+                for (int j = 0; j < nbs.Count; j++)
                 {
-                    var score = Weight(mesh, h, flux, cities[i], nbs[j]);
+                    double score = Weight(mesh, h, flux, cities[i], nbs[j]);
                     queue.Enqueue(new CityProperty()
                     {
                         Score = score,
@@ -1226,16 +1233,16 @@ namespace TerrainGenerator
             }
             while (queue.Count > 0)
             {
-                var u = queue.Dequeue();
+                CityProperty u = queue.Dequeue();
                 if (territories[u.Vx] != 0) continue;
                 territories[u.Vx] = u.City;
-                var nbs = Neighbours(mesh, u.Vx);
-                for (var i = 0; i < nbs.Count; i++)
+                List<int> nbs = Neighbours(mesh, u.Vx);
+                for (int i = 0; i < nbs.Count; i++)
                 {
-                    var v = nbs[i];
+                    int v = nbs[i];
                     if (territories[v] != 0) continue;
-                    var newdist = Weight(mesh, h, flux, u.Vx, v);
-                    var score = u.Score + newdist;
+                    double newdist = Weight(mesh, h, flux, u.Vx, v);
+                    double score = u.Score + newdist;
                     queue.Enqueue(new CityProperty()
                     {
                         Score = score,
@@ -1246,7 +1253,7 @@ namespace TerrainGenerator
             }
             return territories;
         }
-        
+
         /// <summary>
         /// Calculates the movement cost between two adjacent vertices for territory expansion.
         /// Considers terrain height differences, water flow, and land/water boundaries.
@@ -1259,16 +1266,16 @@ namespace TerrainGenerator
         /// <returns>A cost value for moving from vertex u to vertex v.</returns>
         private double Weight(Mesh mesh, double[] h, double[] flux, int u, int v)
         {
-            var horiz = Distance(mesh, u, v);
-            var vert = h[v] - h[u];
+            double horiz = Distance(mesh, u, v);
+            double vert = h[v] - h[u];
             if (vert > 0) vert /= 10;
-            var diff = 1f + 0.25f * (double)Math.Pow((double)(vert / horiz), 2);
-            diff += 100f * (double)Math.Sqrt((double)flux[u]);
+            double diff = 1f + 0.25f * Math.Pow((double)(vert / horiz), 2);
+            diff += 100f * Math.Sqrt((double)flux[u]);
             if (h[u] <= 0) diff = 100;
             if ((h[u] > 0) != (h[v] > 0)) return 1000f;
             return horiz * diff;
         }
-        
+
         /// <summary>
         /// Places a single city at the location with the highest suitability score.
         /// Updates the city list with the new city location.
@@ -1279,9 +1286,9 @@ namespace TerrainGenerator
         /// <param name="h">Reference to height values array.</param>
         public void PlaceCity(ref List<int> cities, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var score = CityScore(ref cities, ref downhill, ref mesh, ref h);
-            var newcity = -1;
-            var highestScore = -1d;
+            double[] score = CityScore(ref cities, ref downhill, ref mesh, ref h);
+            int newcity = -1;
+            double highestScore = -1d;
             for (int i = 0; i < score.Length; i++)
             {
                 if (score[i] > highestScore)
@@ -1292,7 +1299,7 @@ namespace TerrainGenerator
             }
             cities.Add(newcity);
         }
-        
+
         /// <summary>
         /// Places multiple cities on the map according to the specified number in area properties.
         /// Iteratively places cities at optimal locations while considering existing city positions.
@@ -1303,9 +1310,9 @@ namespace TerrainGenerator
         /// <param name="h">Reference to height values array.</param>
         public void PlaceCities(ref CityRender cityRender, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
-            var n = cityRender.AreaProperties.NumberOfCities;
-            var cities = cityRender.Cities;
-            for (var i = 0; i < n; i++)
+            int n = cityRender.AreaProperties.NumberOfCities;
+            List<int> cities = cityRender.Cities;
+            for (int i = 0; i < n; i++)
             {
                 PlaceCity(ref cities, ref downhill, ref mesh, ref h);
             }

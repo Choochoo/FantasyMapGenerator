@@ -17,7 +17,7 @@ namespace D3Voronoi
 
         public Diagram VoronoiDiagram(Point[] pts)
         {
-            var data = pts.Select((d, i) => new Point()
+            List<Point> data = pts.Select((d, i) => new Point()
             {
                 X = Math.Round(d.X / Diagram.Epsilon) * Diagram.Epsilon,
                 Y = Math.Round(d.Y / Diagram.Epsilon) * Diagram.Epsilon,
