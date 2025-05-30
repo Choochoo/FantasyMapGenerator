@@ -296,6 +296,12 @@ namespace TerrainGenerator
             return mesh;
         }
 
+        /// <summary>
+        /// Adds multiple height arrays together element-wise to create a composite height map.
+        /// </summary>
+        /// <param name="count">The number of elements in each height array.</param>
+        /// <param name="values">Variable number of height arrays to add together.</param>
+        /// <returns>A new array with the sum of all input arrays at each position.</returns>
         public double[] Add(int count, params double[][] values)
         {
             var newvals = new double[count];
@@ -309,6 +315,14 @@ namespace TerrainGenerator
             return newvals;
         }
 
+        /// <summary>
+        /// Generates mountain-like features by placing Gaussian peaks at random locations.
+        /// Each mountain contributes height based on distance from its center using a Gaussian distribution.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions.</param>
+        /// <param name="n">The number of mountain peaks to generate.</param>
+        /// <param name="r">The radius parameter controlling mountain width (default is 0.05).</param>
+        /// <returns>An array of height values representing mountain features.</returns>
         public double[] Mountains(Mesh mesh, int n, double r = 0.05f)
         {
             var mounts = new List<Point>();
@@ -332,6 +346,12 @@ namespace TerrainGenerator
             return newvals;
         }
 
+        /// <summary>
+        /// Creates a linear slope across the terrain in the specified direction.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions.</param>
+        /// <param name="direction">A vector indicating the direction and magnitude of the slope.</param>
+        /// <returns>An array of height values representing the linear slope.</returns>
         public double[] Slope(Mesh mesh, Point direction)
         {
             var output = new List<double>();
@@ -342,6 +362,13 @@ namespace TerrainGenerator
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Creates a conical height distribution with maximum height at the center.
+        /// Height decreases radially from the center based on distance.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions.</param>
+        /// <param name="slope">The slope factor controlling the cone steepness.</param>
+        /// <returns>An array of height values representing the conical distribution.</returns>
         public double[] Cone(Mesh mesh, double slope)
         {
             var output = new List<double>();
@@ -352,6 +379,11 @@ namespace TerrainGenerator
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Normalizes height values to the range [0, 1] based on the minimum and maximum values.
+        /// </summary>
+        /// <param name="heights">The array of height values to normalize.</param>
+        /// <returns>An array of normalized height values between 0 and 1.</returns>
         public double[] Normalize(double[] heights)
         {
             var lo = heights.Min();
@@ -364,6 +396,11 @@ namespace TerrainGenerator
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Applies a square root transformation to normalized heights to create more pronounced peaks.
+        /// </summary>
+        /// <param name="heights">The array of height values to transform.</param>
+        /// <returns>An array of height values with enhanced peak characteristics.</returns>
         public double[] Peaky(double[] heights)
         {
             var output = new List<double>();
@@ -376,6 +413,13 @@ namespace TerrainGenerator
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Smooths height values by averaging each vertex with its neighbors.
+        /// Helps reduce noise and create more natural terrain transitions.
+        /// </summary>
+        /// <param name="mesh">The mesh containing adjacency information.</param>
+        /// <param name="heights">The array of height values to smooth.</param>
+        /// <returns>An array of smoothed height values.</returns>
         public double[] Relax(Mesh mesh, double[] heights)
         {
             var output = new double[heights.Length];
@@ -396,6 +440,12 @@ namespace TerrainGenerator
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Gets the list of neighboring vertex indices for a given vertex in the mesh.
+        /// </summary>
+        /// <param name="mesh">The mesh containing adjacency information.</param>
+        /// <param name="index">The vertex index to find neighbors for.</param>
+        /// <returns>A list of neighboring vertex indices.</returns>
         public List<int> Neighbours(Mesh mesh, int index)
         {
             var onbs = mesh.Adj[index];
@@ -407,6 +457,11 @@ namespace TerrainGenerator
             return nbs;
         }
 
+        /// <summary>
+        /// Generates a random direction vector using normal distribution for both X and Y components.
+        /// </summary>
+        /// <param name="scale">The scaling factor for the vector magnitude.</param>
+        /// <returns>A Point representing a random direction vector.</returns>
         public Point RandomVector(int scale)
         {
             var xOut = 0d;
@@ -415,12 +470,22 @@ namespace TerrainGenerator
             return new Point(scale * xOut, scale * yOut);
         }
 
+        /// <summary>
+        /// Generates a random vector and returns it as an array of doubles.
+        /// </summary>
+        /// <param name="scale">The scaling factor for the vector magnitude.</param>
+        /// <returns>An array containing the X and Y components of the random vector.</returns>
         public double[] RandomDoubles(int scale)
         {
             var vector = RandomVector(scale);
             return new[] { (double)vector.X, (double)vector.Y };
         }
 
+        /// <summary>
+        /// Generates an uneroded terrain with basic height features including slopes, cones, and mountains.
+        /// </summary>
+        /// <param name="mesh">Output parameter for the generated mesh.</param>
+        /// <param name="h">Output parameter for the generated height array.</param>
         public void GenerateUneroded(ref Mesh mesh, ref double[] h)
         {
             mesh = GenerateGoodMesh(4096, Extent.DefaultExtent);
@@ -432,7 +497,13 @@ namespace TerrainGenerator
             h = SetSeaLevel(h, 0.5f);
         }
 
-
+        /// <summary>
+        /// Generates contour lines at a specified elevation level by finding edges that cross the contour threshold.
+        /// </summary>
+        /// <param name="mesh">The mesh containing edge information.</param>
+        /// <param name="heights">Array of height values for vertices.</param>
+        /// <param name="level">The elevation level for contour generation (default is 0).</param>
+        /// <returns>A list of contour paths, where each path is a list of connected points.</returns>
         public List<List<Point>> Contour(ref Mesh mesh, ref double[] heights, int level = 0)
         {
             var edges = new List<Point[]>();
@@ -449,6 +520,12 @@ namespace TerrainGenerator
             return MergeSegments(edges);
         }
 
+        /// <summary>
+        /// Determines if a vertex is near the edge of the mesh boundary.
+        /// </summary>
+        /// <param name="mesh">The mesh containing the vertex and extent information.</param>
+        /// <param name="i">The index of the vertex to check.</param>
+        /// <returns>True if the vertex is near the mesh boundary, false otherwise.</returns>
         public bool IsNearEdge(Mesh mesh, int i)
         {
             var x = mesh.Vxs[i].X;
@@ -458,6 +535,12 @@ namespace TerrainGenerator
             return x < -0.45f * w || x > 0.45f * w || y < -0.45f * h || y > 0.45f * h;
         }
 
+        /// <summary>
+        /// Merges line segments into continuous paths by connecting endpoints.
+        /// Used for creating contour lines and other continuous features from discrete segments.
+        /// </summary>
+        /// <param name="segs">List of line segments to merge, where each segment is defined by two points.</param>
+        /// <returns>A list of continuous paths formed by connecting the segments.</returns>
         public List<List<Point>> MergeSegments(List<Point[]> segs)
         {
             var adj = new Dictionary<Point, List<Point>>();
@@ -537,6 +620,13 @@ namespace TerrainGenerator
             return paths;
         }
 
+        /// <summary>
+        /// Sets the sea level by subtracting a quantile-based threshold from all height values.
+        /// Areas below the new sea level will have negative heights (representing water).
+        /// </summary>
+        /// <param name="heights">The array of height values to adjust.</param>
+        /// <param name="q">The quantile value (0.0 to 1.0) to use as the sea level threshold.</param>
+        /// <returns>An array of height values adjusted relative to the new sea level.</returns>
         public double[] SetSeaLevel(double[] heights, double q)
         {
             var output = new double[heights.Length];
@@ -549,6 +639,14 @@ namespace TerrainGenerator
             return output.ToArray();
         }
 
+        /// <summary>
+        /// Fills sink areas in the terrain to ensure proper water flow by raising low areas to allow drainage.
+        /// Uses an iterative algorithm to eliminate local minima that would trap water.
+        /// </summary>
+        /// <param name="mesh">The mesh containing terrain topology.</param>
+        /// <param name="heights">Array of height values to process.</param>
+        /// <param name="epsilon">Small value to ensure proper drainage flow (default is 1e-5).</param>
+        /// <returns>An array of height values with sinks filled to enable proper water flow.</returns>
         public double[] FillSinks(ref Mesh mesh, double[] heights, double epsilon = 1e-5f)
         {
             var infinity = int.MaxValue;
@@ -591,6 +689,16 @@ namespace TerrainGenerator
             }
         }
 
+        /// <summary>
+        /// Performs erosion simulation on the terrain by iteratively applying erosion processes.
+        /// Combines sink filling and erosion to create realistic terrain weathering effects.
+        /// </summary>
+        /// <param name="mesh">The mesh containing terrain topology.</param>
+        /// <param name="downhill">Output parameter for downhill flow directions.</param>
+        /// <param name="heights">Array of height values to erode.</param>
+        /// <param name="amount">The amount of erosion to apply in each iteration.</param>
+        /// <param name="n">The number of erosion iterations to perform (default is 1).</param>
+        /// <returns>An array of height values after erosion processing.</returns>
         public double[] DoErosion(ref Mesh mesh, ref int[] downhill, double[] heights, double amount, int n = 1)
         {
             heights = FillSinks(ref mesh, heights);
@@ -602,6 +710,14 @@ namespace TerrainGenerator
             return heights;
         }
 
+        /// <summary>
+        /// Applies a single erosion step to the terrain based on calculated erosion rates.
+        /// </summary>
+        /// <param name="mesh">The mesh containing terrain topology.</param>
+        /// <param name="downhill">Array of downhill flow directions for each vertex.</param>
+        /// <param name="h">Array of height values to erode.</param>
+        /// <param name="amount">The erosion amount scaling factor.</param>
+        /// <returns>An array of height values after one erosion step.</returns>
         private double[] Erode(Mesh mesh, ref int[] downhill, double[] h, double amount)
         {
             var er = ErosionRate(mesh, ref downhill, h);
@@ -614,6 +730,14 @@ namespace TerrainGenerator
             return output;
         }
 
+        /// <summary>
+        /// Calculates the erosion rate at each vertex based on water flux and terrain slope.
+        /// Combines river erosion (flux-based) and creep erosion (slope-based) effects.
+        /// </summary>
+        /// <param name="mesh">The mesh containing terrain topology.</param>
+        /// <param name="downhill">Array of downhill flow directions for each vertex.</param>
+        /// <param name="h">Array of height values for slope calculation.</param>
+        /// <returns>An array of erosion rates for each vertex.</returns>
         public double[] ErosionRate(Mesh mesh, ref int[] downhill, double[] h)
         {
             var flux = GetFlux(ref mesh, ref downhill, h);
@@ -630,6 +754,14 @@ namespace TerrainGenerator
             return output;
         }
 
+        /// <summary>
+        /// Calculates water flux (flow accumulation) at each vertex by following downhill flow paths.
+        /// Higher flux values indicate areas with more water flow, such as valley bottoms and river channels.
+        /// </summary>
+        /// <param name="mesh">The mesh containing terrain topology.</param>
+        /// <param name="downhill">Array of downhill flow directions for each vertex.</param>
+        /// <param name="h">Array of height values for flow calculation.</param>
+        /// <returns>An array of flux values indicating water flow accumulation at each vertex.</returns>
         private double[] GetFlux(ref Mesh mesh, ref int[] downhill, double[] h)
         {
             var dh = Downhill(mesh, ref downhill, h);
@@ -659,6 +791,12 @@ namespace TerrainGenerator
             return output;
         }
 
+        /// <summary>
+        /// Calculates the slope magnitude at each vertex using triangular slope estimation.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions and connectivity.</param>
+        /// <param name="h">Array of height values for slope calculation.</param>
+        /// <returns>An array of slope magnitudes for each vertex.</returns>
         private double[] GetSlope(Mesh mesh, double[] h)
         {
             var output = new double[h.Length];
@@ -669,6 +807,15 @@ namespace TerrainGenerator
             }
             return output;
         }
+        
+        /// <summary>
+        /// Calculates the slope vector at a vertex using the three neighboring vertices.
+        /// Uses linear interpolation across the triangle to determine the gradient.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions and connectivity.</param>
+        /// <param name="h">Array of height values.</param>
+        /// <param name="i">The vertex index to calculate slope for.</param>
+        /// <returns>A Point representing the slope vector (gradient) at the vertex.</returns>
         public Point Trislope(Mesh mesh, double[] h, int i)
         {
             var nbs = Neighbours(mesh, i);
@@ -689,6 +836,13 @@ namespace TerrainGenerator
             return new Point((y2 * h1 - y1 * h2) / det, (-x2 * h1 + x1 * h2) / det);
         }
 
+        /// <summary>
+        /// Calculates downhill flow directions for each vertex by finding the steepest descent neighbor.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex connectivity.</param>
+        /// <param name="downhill">Reference to the downhill array to populate or return if already calculated.</param>
+        /// <param name="h">Array of height values for flow direction calculation.</param>
+        /// <returns>An array of vertex indices indicating the downhill flow direction for each vertex.</returns>
         private int[] Downhill(Mesh mesh, ref int[] downhill, double[] h)
         {
             if (downhill != null) return downhill;
@@ -718,11 +872,25 @@ namespace TerrainGenerator
             return downs;
         }
 
+        /// <summary>
+        /// Determines if a vertex is on the edge of the mesh by checking its neighbor count.
+        /// </summary>
+        /// <param name="mesh">The mesh containing adjacency information.</param>
+        /// <param name="i">The vertex index to check.</param>
+        /// <returns>True if the vertex is on the mesh edge (has fewer than 3 neighbors), false otherwise.</returns>
         private bool Isedge(Mesh mesh, int i)
         {
             return (mesh.Adj[i].Count < 3);
         }
 
+        /// <summary>
+        /// Cleans up coastline features by smoothing irregular water-land boundaries.
+        /// Removes isolated water cells and fills isolated land cells near the coast.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex connectivity.</param>
+        /// <param name="h">Array of height values representing land (positive) and water (negative).</param>
+        /// <param name="iters">The number of cleanup iterations to perform.</param>
+        /// <returns>An array of height values with cleaned coastlines.</returns>
         public double[] CleanCoast(Mesh mesh, double[] h, int iters)
         {
             for (var iter = 0; iter < iters; iter++)
@@ -778,6 +946,16 @@ namespace TerrainGenerator
             }
             return h;
         }
+        
+        /// <summary>
+        /// Generates river paths by following water flow from high-flux areas downhill to the sea.
+        /// Creates connected path segments that represent river networks based on water flow accumulation.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions and connectivity.</param>
+        /// <param name="downhill">Array of downhill flow directions for each vertex.</param>
+        /// <param name="h">Array of height values to determine land/water boundaries.</param>
+        /// <param name="limit">The minimum flux threshold for creating rivers.</param>
+        /// <returns>A list of river paths, where each path is a list of connected points.</returns>
         public List<List<Point>> GetRivers(ref Mesh mesh, ref int[] downhill, ref double[] h, double limit)
         {
             var dh = Downhill(mesh, ref downhill, h);
@@ -815,6 +993,13 @@ namespace TerrainGenerator
 
             return output;
         }
+        
+        /// <summary>
+        /// Smooths a path by applying weighted averaging to interior points.
+        /// Helps create more natural-looking curved paths for rivers and other features.
+        /// </summary>
+        /// <param name="path">The path to smooth, represented as a list of connected points.</param>
+        /// <returns>A smoothed version of the input path.</returns>
         private List<Point> RelaxPath(List<Point> path)
         {
             var newpath = new List<Point>() { path[0] };
@@ -828,6 +1013,15 @@ namespace TerrainGenerator
             newpath.Add(path[path.Count - 1]);
             return newpath;
         }
+        
+        /// <summary>
+        /// Creates a new CityRender object with generated terrain data and initialized city collections.
+        /// </summary>
+        /// <param name="downhill">Reference to downhill flow directions array.</param>
+        /// <param name="mesh">Reference to the mesh data structure.</param>
+        /// <param name="heights">Reference to height values array.</param>
+        /// <param name="extent">The spatial extent for terrain generation.</param>
+        /// <returns>A new CityRender object with initialized properties and empty city list.</returns>
         public CityRender NewCityRender(ref int[] downhill, ref Mesh mesh, ref double[] heights, Extent extent)
         {
             heights = heights != null ? heights : GenerateCoast(ref downhill, ref mesh, 4096, extent);
@@ -837,6 +1031,16 @@ namespace TerrainGenerator
                 Cities = new List<int>()
             };
         }
+        
+        /// <summary>
+        /// Calculates suitability scores for city placement at each vertex based on multiple factors.
+        /// Considers water flow, distance from edges, and proximity to existing cities.
+        /// </summary>
+        /// <param name="cities">Reference to the list of existing city vertex indices.</param>
+        /// <param name="downhill">Reference to downhill flow directions array.</param>
+        /// <param name="mesh">Reference to the mesh data structure.</param>
+        /// <param name="h">Reference to height values array.</param>
+        /// <returns>An array of suitability scores for city placement at each vertex.</returns>
         public double[] CityScore(ref List<int> cities, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
             var score = GetFlux(ref mesh, ref downhill, h).ToList();
@@ -861,12 +1065,31 @@ namespace TerrainGenerator
             }
             return score.ToArray();
         }
+        
+        /// <summary>
+        /// Calculates the Euclidean distance between two vertices in the mesh.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions.</param>
+        /// <param name="i">The index of the first vertex.</param>
+        /// <param name="j">The index of the second vertex.</param>
+        /// <returns>The distance between the two vertices.</returns>
         private double Distance(Mesh mesh, int i, int j)
         {
             var p = mesh.Vxs[i];
             var q = mesh.Vxs[j];
             return Math.Sqrt((double)((p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y)));
         }
+        
+        /// <summary>
+        /// Calculates a penalty score for label placement based on overlap with existing labels and map features.
+        /// Used in label optimization to avoid overlapping text and ensure readable map labels.
+        /// </summary>
+        /// <param name="label">The potential label location to evaluate.</param>
+        /// <param name="mesh">The mesh containing spatial boundaries.</param>
+        /// <param name="citylabels">List of existing city labels to avoid overlapping.</param>
+        /// <param name="cities">List of city locations to avoid covering.</param>
+        /// <param name="avoids">Array of path lists (rivers, borders, etc.) to avoid overlapping.</param>
+        /// <returns>An integer penalty score, where higher values indicate worse placement.</returns>
         public int Penalty(PossibleLabelLocation label, Mesh mesh, List<PossibleLabelLocation> citylabels, List<int> cities, List<List<Point>>[] avoids)
         {
             var pen = 0;
@@ -910,6 +1133,17 @@ namespace TerrainGenerator
             }
             return pen;
         }
+        
+        /// <summary>
+        /// Calculates the centroid (geometric center) of a territory's land area.
+        /// Used for determining optimal placement of territory labels and markers.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions.</param>
+        /// <param name="h">Array of height values to distinguish land from water.</param>
+        /// <param name="terr">Array of territory assignments for each vertex.</param>
+        /// <param name="city">The territory identifier to calculate center for.</param>
+        /// <param name="landOnly">Whether to include only land vertices (above sea level) in the calculation.</param>
+        /// <returns>A Point representing the centroid of the specified territory.</returns>
         public Point TerrCenter(Mesh mesh, double[] h, double[] terr, int city, bool landOnly)
         {
             var x = 0d;
@@ -925,6 +1159,15 @@ namespace TerrainGenerator
             }
             return new Point(x / n, y / n);
         }
+        
+        /// <summary>
+        /// Generates border paths between different territories by finding edges that cross territory boundaries.
+        /// Creates connected line segments that represent political or administrative boundaries.
+        /// </summary>
+        /// <param name="mesh">The mesh containing edge connectivity information.</param>
+        /// <param name="cityRender">The CityRender object containing territory assignments.</param>
+        /// <param name="h">Array of height values to exclude underwater areas.</param>
+        /// <returns>A list of border paths, where each path is a list of connected points.</returns>
         public List<List<Point>> GetBorders(ref Mesh mesh, ref CityRender cityRender, ref double[] h)
         {
             var terr = cityRender.Territories;
@@ -948,6 +1191,16 @@ namespace TerrainGenerator
 
             return output;
         }
+        
+        /// <summary>
+        /// Assigns territories to vertices using a flood-fill algorithm based on distance from cities.
+        /// Creates territories by expanding from city centers until all land vertices are assigned.
+        /// </summary>
+        /// <param name="cityRender">The CityRender object containing city and territory information.</param>
+        /// <param name="downhill">Reference to downhill flow directions array.</param>
+        /// <param name="mesh">Reference to the mesh data structure.</param>
+        /// <param name="h">Reference to height values array.</param>
+        /// <returns>An array of territory assignments for each vertex.</returns>
         public double[] GetTerritories(ref CityRender cityRender, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
             var cities = cityRender.Cities;
@@ -955,7 +1208,7 @@ namespace TerrainGenerator
             if (n > cities.Count) n = cities.Count;
             var flux = GetFlux(ref mesh, ref downhill, h);
             var territories = new double[h.Length];
-            var queue = new SimplePriorityQueue<CityProperty>();//5 is made up number
+            var queue = new SimplePriorityQueue<CityProperty>();
             for (var i = 0; i < n; i++)
             {
                 territories[cities[i]] = cities[i];
@@ -993,6 +1246,17 @@ namespace TerrainGenerator
             }
             return territories;
         }
+        
+        /// <summary>
+        /// Calculates the movement cost between two adjacent vertices for territory expansion.
+        /// Considers terrain height differences, water flow, and land/water boundaries.
+        /// </summary>
+        /// <param name="mesh">The mesh containing vertex positions.</param>
+        /// <param name="h">Array of height values.</param>
+        /// <param name="flux">Array of water flux values.</param>
+        /// <param name="u">The source vertex index.</param>
+        /// <param name="v">The destination vertex index.</param>
+        /// <returns>A cost value for moving from vertex u to vertex v.</returns>
         private double Weight(Mesh mesh, double[] h, double[] flux, int u, int v)
         {
             var horiz = Distance(mesh, u, v);
@@ -1004,6 +1268,15 @@ namespace TerrainGenerator
             if ((h[u] > 0) != (h[v] > 0)) return 1000f;
             return horiz * diff;
         }
+        
+        /// <summary>
+        /// Places a single city at the location with the highest suitability score.
+        /// Updates the city list with the new city location.
+        /// </summary>
+        /// <param name="cities">Reference to the list of existing city vertex indices.</param>
+        /// <param name="downhill">Reference to downhill flow directions array.</param>
+        /// <param name="mesh">Reference to the mesh data structure.</param>
+        /// <param name="h">Reference to height values array.</param>
         public void PlaceCity(ref List<int> cities, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
             var score = CityScore(ref cities, ref downhill, ref mesh, ref h);
@@ -1019,6 +1292,15 @@ namespace TerrainGenerator
             }
             cities.Add(newcity);
         }
+        
+        /// <summary>
+        /// Places multiple cities on the map according to the specified number in area properties.
+        /// Iteratively places cities at optimal locations while considering existing city positions.
+        /// </summary>
+        /// <param name="cityRender">The CityRender object containing city configuration and list.</param>
+        /// <param name="downhill">Reference to downhill flow directions array.</param>
+        /// <param name="mesh">Reference to the mesh data structure.</param>
+        /// <param name="h">Reference to height values array.</param>
         public void PlaceCities(ref CityRender cityRender, ref int[] downhill, ref Mesh mesh, ref double[] h)
         {
             var n = cityRender.AreaProperties.NumberOfCities;

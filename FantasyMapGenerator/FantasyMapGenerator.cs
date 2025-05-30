@@ -413,6 +413,12 @@ namespace WorldMap
             PhysRender((Button)sender, "Show Heightmap", "Hide Heightmap", (int)DrawPanel.Visualize.LayerRenderingGenerateRandomHeightmap);
         }
         
+        /// <summary>
+        /// Generates a new terrain with cities for the cities layer.
+        /// Creates height map, places initial cities, and enables city management controls.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void CitiesGenerateRandomHeightmapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -441,6 +447,12 @@ namespace WorldMap
             });
         }
         
+        /// <summary>
+        /// Adds a new city to the map at the location with the highest suitability score.
+        /// Considers factors like water access, elevation, and distance from existing cities.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void CityAddNewClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -473,6 +485,12 @@ namespace WorldMap
             });
         }
         
+        /// <summary>
+        /// Performs city drawing operations including territory assignment and scoring.
+        /// Calculates territories for each city and optionally computes city placement scores.
+        /// </summary>
+        /// <param name="cityViewScore">Whether to display city placement scores (true) or territories (false).</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task CityDrawAsync(bool cityViewScore = true)
         {
             var (downhill, mesh, heights, cityRender) = await Task.Run(() =>
@@ -501,11 +519,16 @@ namespace WorldMap
                 instance.Mesh = mesh;
                 instance.Heights = heights;
                 
-                // Set DrawQueue last to ensure all data is ready before triggering repaint
                 paintPanel.DrawQueue = cityViewScore ? new[] { (int)DrawPanel.Visualize.LayerCitiesViewCities } : new[] { (int)DrawPanel.Visualize.LayerCitiesViewTerritories };
             });
         }
         
+        /// <summary>
+        /// Toggles between showing territory boundaries and city placement scores.
+        /// Updates the visualization to highlight either territorial control or optimal city locations.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void ShowTerritoriesClick(object sender, EventArgs e)
         {
             var originalText = "Show Territories";
@@ -523,6 +546,12 @@ namespace WorldMap
             }
         }
         
+        /// <summary>
+        /// Generates a complete high-resolution map with all features including labels.
+        /// Creates the final map output with terrain, cities, rivers, borders, and procedurally generated names.
+        /// </summary>
+        /// <param name="sender">The button that triggered this event.</param>
+        /// <param name="e">Event arguments containing event data.</param>
         private async void GenHighResolutionMapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
@@ -531,13 +560,18 @@ namespace WorldMap
             });
         }
         
+        /// <summary>
+        /// Performs the complete map generation process asynchronously.
+        /// Generates terrain, places cities, creates rivers and borders, assigns territories, and prepares for labeling.
+        /// </summary>
+        /// <param name="cancellationToken">Token for cancelling the operation if needed.</param>
+        /// <returns>A task representing the asynchronous map generation operation.</returns>
         private async Task DoMapAsync(CancellationToken cancellationToken = default)
         {
             var (downhill, mesh, heights, cityRender) = await Task.Run(() =>
             {
-                // Don't reset the instance here - do it on UI thread
                 var cityRenderVar = new CityRender();
-                var downhillVar = new int[0]; // Initialize with empty arrays
+                var downhillVar = new int[0];
                 var meshVar = new Mesh();
                 var generatedHeights = paintPanel.Terrain.GenerateCoast(ref downhillVar, ref meshVar, cityRenderVar.AreaProperties.NumberOfPoints, Extent.DefaultExtent);
                 
@@ -563,7 +597,6 @@ namespace WorldMap
             this.Invoke((MethodInvoker)delegate
             {
                 var instance = LayerLabels.Instance;
-                // Reset on UI thread to avoid race condition with rendering
                 instance.Reset();
                 
                 cityRender.Rivers = rivers;
@@ -576,11 +609,16 @@ namespace WorldMap
                 instance.Mesh = mesh;
                 instance.Heights = heights;
                 
-                // Set DrawQueue last to ensure all data is ready before triggering repaint
                 paintPanel.DrawQueue = new[] { (int)DrawPanel.Visualize.LayerLabelsDoMap };
             });
         }
 
+        /// <summary>
+        /// Executes a generation operation asynchronously with proper cancellation handling and error management.
+        /// Manages rendering state, cancellation tokens, and provides user feedback during long operations.
+        /// </summary>
+        /// <param name="operation">The async operation to execute, which takes a cancellation token.</param>
+        /// <returns>A task representing the asynchronous execution operation.</returns>
         private async Task ExecuteGenerationAsync(Func<CancellationToken, Task> operation)
         {
             CancelCurrentOperation();
@@ -593,7 +631,6 @@ namespace WorldMap
             }
             catch (OperationCanceledException)
             {
-                // Operation was cancelled, this is expected
             }
             catch (Exception ex)
             {
@@ -608,6 +645,11 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Handles key down events on the seed numeric control to recreate terrain with new seed values.
+        /// </summary>
+        /// <param name="sender">The numeric up/down control that triggered this event.</param>
+        /// <param name="e">Key event arguments containing information about the key pressed.</param>
         private void NumericUpDown1KeyDown(object sender, KeyEventArgs e)
         {
             var seed = (int)seedStepper.Value;
@@ -615,6 +657,10 @@ namespace WorldMap
             paintPanel.CreateTerrain(seed);
         }
 
+        /// <summary>
+        /// Handles form closing by cancelling any running operations to ensure clean shutdown.
+        /// </summary>
+        /// <param name="e">Form closed event arguments.</param>
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             CancelCurrentOperation();

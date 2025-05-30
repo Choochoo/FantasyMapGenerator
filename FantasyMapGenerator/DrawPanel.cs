@@ -21,6 +21,11 @@ using TerrainGenerator;
 
 namespace WorldMap
 {
+    /// <summary>
+    /// Custom Panel control for rendering fantasy maps with terrain, cities, rivers, and labels.
+    /// Provides visualization capabilities for different map generation stages and supports multiple rendering layers.
+    /// Handles the complete map generation pipeline from initial point generation to final labeled maps.
+    /// </summary>
     [Designer("System.Windows.Forms.Design.ParentControlDesigner, System.Design", typeof(IDesigner))]
     public class DrawPanel : Panel
     {
@@ -219,6 +224,11 @@ namespace WorldMap
             _generatingLabel.Text = $"Generating{dots}";
         }
 
+        /// <summary>
+        /// Overrides the OnPaint method to render the map visualization based on the current DrawQueue.
+        /// Handles all visualization steps including terrain, cities, rivers, borders, and labels.
+        /// </summary>
+        /// <param name="e">Paint event arguments containing the graphics context.</param>
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.Clear(Color.White);
@@ -348,6 +358,12 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Renders an array of points as blue circles on the graphics surface.
+        /// Circle size is automatically scaled based on the number of points for optimal visibility.
+        /// </summary>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="points">Array of points to visualize as circles.</param>
         private void VisualizePoints(Graphics g, Point[] points)
         {
             var offsetHeight = (_drawnBitmap.Height) / 2;
@@ -360,6 +376,13 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Renders cities on the graphics surface as filled circles with different sizes based on their importance.
+        /// Cities that are territory capitals are drawn larger than regular cities.
+        /// </summary>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="cityRender">The CityRender object containing city data and rendering information.</param>
+        /// <param name="mesh">The Mesh object containing vertex positions for city placement.</param>
         private void VisualizeCities(Graphics g, CityRender cityRender, Mesh mesh)
         {
             var cities = cityRender.Cities;
@@ -385,6 +408,13 @@ namespace WorldMap
             }
         }
 
+        /// <summary>
+        /// Renders slope shading lines on the terrain to indicate elevation changes and terrain steepness.
+        /// Uses directional lines whose length and direction indicate the slope gradient.
+        /// </summary>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="mesh">The Mesh object containing terrain data.</param>
+        /// <param name="h">Array of height values for each vertex in the mesh.</param>
         private void VisualizeSlopes(Graphics g, Mesh mesh, double[] h)
         {
             var strokes = new List<List<Point>>();
@@ -463,6 +493,15 @@ namespace WorldMap
 
         }
 
+        /// <summary>
+        /// Renders paths (rivers, borders, coastlines) on the graphics surface with specified styling.
+        /// Supports different line styles including dotted lines for borders.
+        /// </summary>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="paths">List of paths to render, where each path is a list of connected points.</param>
+        /// <param name="color">The color to use for drawing the paths.</param>
+        /// <param name="size">The thickness of the path lines.</param>
+        /// <param name="isBorder">Whether to draw the paths with a dotted border style (default is false).</param>
         private void VisualizePaths(Graphics g, List<List<Point>> paths, Color color, int size, bool isBorder = false)
         {
             if (paths == null)
@@ -498,6 +537,15 @@ namespace WorldMap
             graphicsPath.Dispose();
         }
 
+        /// <summary>
+        /// Renders the Voronoi diagram as filled triangular polygons with color-coded height values.
+        /// Uses the Viridis color scale to represent elevation from low (dark blue) to high (yellow).
+        /// </summary>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="mesh">The Mesh object containing triangulation data.</param>
+        /// <param name="heights">Array of height values for color mapping.</param>
+        /// <param name="lo">Minimum height value for color scaling (default is auto-calculated).</param>
+        /// <param name="hi">Maximum height value for color scaling (default is auto-calculated).</param>
         private void VisualizeVoronoi(Graphics g, Mesh mesh, double[] heights, double lo = double.MaxValue, double hi = double.MinValue)
         {
             if (hi == double.MinValue)
@@ -551,12 +599,24 @@ namespace WorldMap
             graphicsPath.Dispose();
         }
 
+        /// <summary>
+        /// Generates a new Voronoi mesh for the outline layer with 4096 points.
+        /// Resets the outline layer heights and creates a fresh mesh using the default extent.
+        /// </summary>
         public void GenerateVoronoi()
         {
             LayerOutline.Instance.Heights = null;
             LayerOutline.Instance.Mesh = this.Terrain.GenerateGoodMesh(4096, Extent.DefaultExtent);
         }
 
+        /// <summary>
+        /// Generates and renders city and region labels using procedural language generation.
+        /// Places labels optimally to avoid overlapping with map features like cities, rivers, and borders.
+        /// Uses penalty-based positioning to find the best label placement for readability.
+        /// </summary>
+        /// <typeparam name="T">Type that implements required interfaces for city rendering, mesh, and heights.</typeparam>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="instance">The layer instance containing city, mesh, and height data.</param>
         private void VisualizeLabels<T>(Graphics g, T instance) where T : IHasCityRender, IHasMesh, IHasHeights
         {
             var finalCityRender = instance.CityRender;
@@ -713,6 +773,13 @@ namespace WorldMap
             DrawText(g, reglabels);
         }
 
+        /// <summary>
+        /// Renders text labels on the graphics surface with outline effects for improved readability.
+        /// Supports different text alignments and font sizes for cities and regions.
+        /// </summary>
+        /// <param name="g">The Graphics object to draw on.</param>
+        /// <param name="labels">List of label locations with text, position, and formatting information.</param>
+        /// <param name="isCities">Whether these are city labels (true) or region labels (false) for different formatting.</param>
         private void DrawText(Graphics g, List<PossibleLabelLocation> labels, bool isCities = false)
         {
             var multiplier = _drawnBitmap.Width;

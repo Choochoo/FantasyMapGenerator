@@ -14,8 +14,8 @@ namespace Language
         /// <summary>
         /// Static random number generator with a fixed seed for consistent language generation.
         /// </summary>
-        private static readonly Random Random = new Random(200);
-        
+        private static readonly Random Random = new(200);
+
         /// <summary>
         /// Shuffles the characters in a phoneme string to create variation in sound selection.
         /// </summary>
@@ -36,9 +36,9 @@ namespace Language
                 newlist[i] = newlist[j];
                 newlist[j] = tmp;
             }
-            return new string(newlist.ToArray());
+            return new string([.. newlist]);
         }
-        
+
         /// <summary>
         /// Chooses a random index from a list with weighted probability distribution.
         /// Higher exponent values favor earlier indices in the list.
@@ -50,12 +50,12 @@ namespace Language
         {
             return (int)Math.Floor(Math.Pow(Random.NextDouble(), exponent) * listLength);
         }
-        
+
         /// <summary>
         /// Counter for tracking the number of choose operations performed.
         /// </summary>
         private static int ChooseCount = 0;
-        
+
         /// <summary>
         /// Generates a random integer within the specified range.
         /// </summary>
@@ -71,7 +71,7 @@ namespace Language
             }
             return (int)(Math.Floor(Random.NextDouble() * (hi.Value - lo)) + lo);
         }
-        
+
         /// <summary>
         /// Joins an array of strings with the specified separator.
         /// </summary>
@@ -90,7 +90,7 @@ namespace Language
 
             return s;
         }
-        
+
         /// <summary>
         /// Capitalizes the first character of a word.
         /// </summary>
@@ -98,9 +98,9 @@ namespace Language
         /// <returns>The word with its first character converted to uppercase.</returns>
         private static string Capitalize(string word)
         {
-            return char.ToUpper(word[0]) + word.Substring(1);
+            return char.ToUpper(word[0]) + word[1..];
         }
-        
+
         /// <summary>
         /// Converts a phonetic syllable to its orthographic representation using the language's spelling rules.
         /// </summary>
@@ -125,7 +125,7 @@ namespace Language
             }
             return s;
         }
-        
+
         /// <summary>
         /// Generates a single syllable according to the language's phonetic structure and restrictions.
         /// </summary>
@@ -163,7 +163,7 @@ namespace Language
                 return Spell(lang, syll);
             }
         }
-        
+
         /// <summary>
         /// Retrieves or generates a morpheme for the specified semantic key.
         /// </summary>
@@ -175,7 +175,7 @@ namespace Language
             if (lang.NoMorph)
                 return MakeSyllable(lang);
 
-            var list = lang.Morphemes.ContainsKey(key) ? lang.Morphemes[key] : new List<string>();
+            var list = lang.Morphemes.ContainsKey(key) ? lang.Morphemes[key] : [];
             var extras = 10;
             if (!string.IsNullOrEmpty(key)) extras = 1;
             while (true)
@@ -198,7 +198,7 @@ namespace Language
                 return morph;
             }
         }
-        
+
         /// <summary>
         /// Creates a multi-syllable word by combining morphemes according to the language's syllable constraints.
         /// </summary>
@@ -218,7 +218,7 @@ namespace Language
             }
             return w;
         }
-        
+
         /// <summary>
         /// Retrieves or generates a word for the specified semantic key from the language's vocabulary.
         /// </summary>
@@ -258,7 +258,7 @@ namespace Language
                 return w;
             }
         }
-        
+
         /// <summary>
         /// Generates a complete name using the language's vocabulary and grammatical rules.
         /// Names can be simple words or compound constructions with articles and genitive markers.
@@ -272,8 +272,6 @@ namespace Language
                 lang.Genitive = GetMorpheme(lang, "of");
             if (lang.Definite == null)
                 lang.Definite = GetMorpheme(lang, "the");
-
-            var counter = 0;
 
             while (true)
             {
@@ -319,7 +317,7 @@ namespace Language
                 return name;
             }
         }
-        
+
         /// <summary>
         /// Creates a new language with orthographic spelling enabled.
         /// </summary>
@@ -330,7 +328,7 @@ namespace Language
             lang.NoOrtho = false;
             return lang;
         }
-        
+
         /// <summary>
         /// Generates a completely random language with randomized phoneme sets, structure, and orthographic rules.
         /// </summary>
