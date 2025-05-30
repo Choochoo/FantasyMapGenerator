@@ -5,9 +5,22 @@ using System.Text.RegularExpressions;
 
 namespace Language
 {
+    /// <summary>
+    /// Static class responsible for generating fantasy languages, words, and names.
+    /// Provides methods for creating syllables, morphemes, words, and complete language systems with phonetic rules.
+    /// </summary>
     public class LanguageGenerator
     {
+        /// <summary>
+        /// Static random number generator with a fixed seed for consistent language generation.
+        /// </summary>
         private static readonly Random Random = new Random(200);
+        
+        /// <summary>
+        /// Shuffles the characters in a phoneme string to create variation in sound selection.
+        /// </summary>
+        /// <param name="phoneme">The phoneme string to shuffle.</param>
+        /// <returns>A new string with the characters randomly rearranged.</returns>
         private static string Shuffled(string phoneme)
         {
             var list = phoneme.ToCharArray();
@@ -25,11 +38,30 @@ namespace Language
             }
             return new string(newlist.ToArray());
         }
+        
+        /// <summary>
+        /// Chooses a random index from a list with weighted probability distribution.
+        /// Higher exponent values favor earlier indices in the list.
+        /// </summary>
+        /// <param name="listLength">The length of the list to choose from.</param>
+        /// <param name="exponent">The exponent for probability weighting (default is 1).</param>
+        /// <returns>A randomly selected index within the list bounds.</returns>
         private static int Choose(int listLength, int exponent = 1)
         {
             return (int)Math.Floor(Math.Pow(Random.NextDouble(), exponent) * listLength);
         }
+        
+        /// <summary>
+        /// Counter for tracking the number of choose operations performed.
+        /// </summary>
         private static int ChooseCount = 0;
+        
+        /// <summary>
+        /// Generates a random integer within the specified range.
+        /// </summary>
+        /// <param name="lo">The lower bound (inclusive) or upper bound if hi is null.</param>
+        /// <param name="hi">The upper bound (exclusive), or null to use lo as upper bound with 0 as lower bound.</param>
+        /// <returns>A random integer within the specified range.</returns>
         private static int RandRange(double lo, double? hi = null)
         {
             if (!hi.HasValue)
@@ -39,6 +71,13 @@ namespace Language
             }
             return (int)(Math.Floor(Random.NextDouble() * (hi.Value - lo)) + lo);
         }
+        
+        /// <summary>
+        /// Joins an array of strings with the specified separator.
+        /// </summary>
+        /// <param name="list">The array of strings to join.</param>
+        /// <param name="sep">The separator string to use between elements (default is empty string).</param>
+        /// <returns>A single string with all elements joined by the separator.</returns>
         private static string Join(string[] list, string sep = "")
         {
             if (list.Length == 0) return string.Empty;
@@ -51,10 +90,23 @@ namespace Language
 
             return s;
         }
+        
+        /// <summary>
+        /// Capitalizes the first character of a word.
+        /// </summary>
+        /// <param name="word">The word to capitalize.</param>
+        /// <returns>The word with its first character converted to uppercase.</returns>
         private static string Capitalize(string word)
         {
             return char.ToUpper(word[0]) + word.Substring(1);
         }
+        
+        /// <summary>
+        /// Converts a phonetic syllable to its orthographic representation using the language's spelling rules.
+        /// </summary>
+        /// <param name="lang">The language containing orthographic mappings.</param>
+        /// <param name="syll">The phonetic syllable to convert.</param>
+        /// <returns>The orthographically spelled version of the syllable.</returns>
         private static string Spell(Language lang, string syll)
         {
             if (lang.NoOrtho) return syll;
@@ -73,6 +125,12 @@ namespace Language
             }
             return s;
         }
+        
+        /// <summary>
+        /// Generates a single syllable according to the language's phonetic structure and restrictions.
+        /// </summary>
+        /// <param name="lang">The language containing phoneme sets, structure, and restrictions.</param>
+        /// <returns>A randomly generated syllable that conforms to the language rules.</returns>
         private static string MakeSyllable(Language lang)
         {
             while (true)
@@ -105,6 +163,13 @@ namespace Language
                 return Spell(lang, syll);
             }
         }
+        
+        /// <summary>
+        /// Retrieves or generates a morpheme for the specified semantic key.
+        /// </summary>
+        /// <param name="lang">The language containing morpheme collections.</param>
+        /// <param name="key">The semantic key for the morpheme (empty string for generic morphemes).</param>
+        /// <returns>A morpheme string associated with the given key.</returns>
         private static string GetMorpheme(Language lang, string key = "")
         {
             if (lang.NoMorph)
@@ -133,6 +198,13 @@ namespace Language
                 return morph;
             }
         }
+        
+        /// <summary>
+        /// Creates a multi-syllable word by combining morphemes according to the language's syllable constraints.
+        /// </summary>
+        /// <param name="lang">The language containing syllable and morpheme rules.</param>
+        /// <param name="key">The semantic key for the word's primary morpheme.</param>
+        /// <returns>A complete word composed of one or more syllables.</returns>
         private static string MakeWord(Language lang, string key)
         {
             var nsylls = RandRange(lang.MinSyll, lang.MaxSyll + 1);
@@ -146,6 +218,13 @@ namespace Language
             }
             return w;
         }
+        
+        /// <summary>
+        /// Retrieves or generates a word for the specified semantic key from the language's vocabulary.
+        /// </summary>
+        /// <param name="lang">The language containing word collections.</param>
+        /// <param name="key">The semantic key for the word (empty string for generic words).</param>
+        /// <returns>A word string associated with the given key.</returns>
         private static string GetWord(Language lang, string key = "")
         {
             List<string> ws = null;
@@ -179,6 +258,14 @@ namespace Language
                 return w;
             }
         }
+        
+        /// <summary>
+        /// Generates a complete name using the language's vocabulary and grammatical rules.
+        /// Names can be simple words or compound constructions with articles and genitive markers.
+        /// </summary>
+        /// <param name="lang">The language to use for name generation.</param>
+        /// <param name="key">The semantic key for the name's primary component (empty string for generic names).</param>
+        /// <returns>A unique name that follows the language's naming conventions.</returns>
         public static string MakeName(Language lang, string key = "")
         {
             if (lang.Genitive == null)
@@ -232,12 +319,22 @@ namespace Language
                 return name;
             }
         }
+        
+        /// <summary>
+        /// Creates a new language with orthographic spelling enabled.
+        /// </summary>
+        /// <returns>A Language instance configured to use orthographic representations.</returns>
         public static Language MakeOrthoLanguage()
         {
             var lang = new Language();
             lang.NoOrtho = false;
             return lang;
         }
+        
+        /// <summary>
+        /// Generates a completely random language with randomized phoneme sets, structure, and orthographic rules.
+        /// </summary>
+        /// <returns>A fully configured Language instance with randomly selected linguistic features.</returns>
         public static Language MakeRandomLanguage()
         {
             ChooseCount = 0;

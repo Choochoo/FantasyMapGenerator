@@ -7,21 +7,42 @@ using Priority_Queue;
 
 namespace TerrainGenerator
 {
-
+    /// <summary>
+    /// Main class responsible for generating terrain, coastlines, and geographical features for fantasy maps.
+    /// Provides methods for mesh generation, height map creation, erosion simulation, and various terrain algorithms.
+    /// </summary>
     public class Terrain
     {
+        /// <summary>
+        /// Random number generator instance used for all terrain generation operations.
+        /// </summary>
         private Random _random;
 
+        /// <summary>
+        /// Initializes a new instance of the Terrain class with a specified random seed.
+        /// </summary>
+        /// <param name="seed">The seed value for the random number generator to ensure reproducible terrain generation.</param>
         public Terrain(int seed)
         {
             _random = new Random(seed);
         }
 
+        /// <summary>
+        /// Generates a random double value within the specified range using uniform distribution.
+        /// </summary>
+        /// <param name="lo">The lower bound (inclusive) of the range.</param>
+        /// <param name="hi">The upper bound (exclusive) of the range.</param>
+        /// <returns>A random double value between lo and hi.</returns>
         public double Runif(double lo, double hi)
         {
             return lo + _random.NextDouble() * (hi - lo);
         }
 
+        /// <summary>
+        /// Generates two normally distributed random numbers using the Box-Muller transform.
+        /// </summary>
+        /// <param name="x1">Output parameter for the first normally distributed random number.</param>
+        /// <param name="x2">Output parameter for the second normally distributed random number.</param>
         public void RNorm(out double x1, out double x2)
         {
             x1 = 0;
@@ -38,6 +59,12 @@ namespace TerrainGenerator
             x1 *= w;
         }
 
+        /// <summary>
+        /// Generates an array of random points within the specified extent.
+        /// </summary>
+        /// <param name="n">The number of points to generate.</param>
+        /// <param name="extent">The bounding area within which to generate points.</param>
+        /// <returns>An array of randomly distributed points.</returns>
         public Point[] GeneratePoints(int n, Extent extent)
         {
             var pts = new Point[n];
@@ -50,12 +77,24 @@ namespace TerrainGenerator
             return pts;
         }
 
+        /// <summary>
+        /// Generates a high-quality mesh with well-distributed points using Lloyd relaxation.
+        /// </summary>
+        /// <param name="n">The number of points to generate for the mesh.</param>
+        /// <param name="extent">The bounding area for the mesh generation.</param>
+        /// <returns>A Mesh object with optimally distributed vertices and connectivity information.</returns>
         public Mesh GenerateGoodMesh(int n, Extent extent)
         {
             var pts = GenerateGoodPoints(n, extent);
             return MakeMesh(pts, extent);
         }
 
+        /// <summary>
+        /// Generates well-distributed points by applying Lloyd relaxation to improve point distribution.
+        /// </summary>
+        /// <param name="n">The number of points to generate.</param>
+        /// <param name="extent">The bounding area for point generation.</param>
+        /// <returns>An array of optimally distributed points.</returns>
         private Point[] GenerateGoodPoints(int n, Extent extent)
         {
             var pts = GeneratePoints(n, extent);
@@ -63,6 +102,14 @@ namespace TerrainGenerator
             return ImprovePoints(pts, extent, 1);
         }
 
+        /// <summary>
+        /// Generates a complete coastline with terrain features including mountains, erosion, and water bodies.
+        /// </summary>
+        /// <param name="downhill">Output parameter containing downhill flow directions for each vertex.</param>
+        /// <param name="mesh">Output parameter containing the generated mesh structure.</param>
+        /// <param name="npts">The number of points to use for mesh generation.</param>
+        /// <param name="extent">The bounding area for terrain generation.</param>
+        /// <returns>An array of height values representing the final terrain elevation.</returns>
         public double[] GenerateCoast(ref int[] downhill, ref Mesh mesh, int npts, Extent extent)
         {
             mesh = GenerateGoodMesh(npts, extent);
@@ -83,6 +130,11 @@ namespace TerrainGenerator
             return h;
         }
 
+        /// <summary>
+        /// Calculates the centroid (geometric center) of a collection of points.
+        /// </summary>
+        /// <param name="pts">The list of points to calculate the centroid for.</param>
+        /// <returns>A Point representing the centroid of the input points.</returns>
         private Point Centroid(List<Point> pts)
         {
             var x = 0d;
@@ -95,6 +147,13 @@ namespace TerrainGenerator
             return new Point(x / pts.Count, y / pts.Count);
         }
 
+        /// <summary>
+        /// Improves point distribution using Lloyd relaxation algorithm by moving points toward Voronoi cell centroids.
+        /// </summary>
+        /// <param name="pts">The array of points to improve.</param>
+        /// <param name="extent">The bounding area for the points.</param>
+        /// <param name="n">The number of relaxation iterations to perform (default is 1).</param>
+        /// <returns>An array of points with improved distribution.</returns>
         public Point[] ImprovePoints(Point[] pts, Extent extent, int n = 1)
         {
             extent = extent == null ? Extent.DefaultExtent : extent;
@@ -104,6 +163,12 @@ namespace TerrainGenerator
             }
             return pts;
         }
+        
+        /// <summary>
+        /// Creates a Voronoi diagram generator configured for the specified extent.
+        /// </summary>
+        /// <param name="extent">The bounding area for the Voronoi diagram.</param>
+        /// <returns>A Voronoi instance configured with the appropriate extent.</returns>
         public Voronoi Voronoi(Extent extent)
         {
             extent = extent == null ? Extent.DefaultExtent : extent;
@@ -113,6 +178,12 @@ namespace TerrainGenerator
             return new Voronoi(newExtent);
         }
 
+        /// <summary>
+        /// Creates a mesh data structure from an array of points using Voronoi diagram generation.
+        /// </summary>
+        /// <param name="pts">The array of points to create the mesh from.</param>
+        /// <param name="extent">The bounding area for the mesh.</param>
+        /// <returns>A Mesh object containing vertices, edges, adjacency information, and triangulation data.</returns>
         public Mesh MakeMesh(Point[] pts, Extent extent)
         {
             var vor = Voronoi(extent).VoronoiDiagram(pts);
