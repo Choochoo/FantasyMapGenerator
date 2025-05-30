@@ -87,7 +87,7 @@
             this.erodeGenerateRandomHeightMap.TabIndex = 1;
             this.erodeGenerateRandomHeightMap.Text = "Generate Random Points";
             this.erodeGenerateRandomHeightMap.UseVisualStyleBackColor = false;
-            this.erodeGenerateRandomHeightMap.Click += new System.EventHandler(this.generateRandomPoints_Click);
+            this.erodeGenerateRandomHeightMap.Click += new System.EventHandler(this.GenerateRandomPointsClick);
             // 
             // tabControl1
             // 
@@ -129,7 +129,7 @@
             this.showOriginalPoints.TabIndex = 3;
             this.showOriginalPoints.Text = "Show Original Points";
             this.showOriginalPoints.UseVisualStyleBackColor = false;
-            this.showOriginalPoints.Click += new System.EventHandler(this.showOriginalPoints_Click);
+            this.showOriginalPoints.Click += new System.EventHandler(this.ShowOriginalPointsClick);
             // 
             // improvePoints
             // 
@@ -144,7 +144,7 @@
             this.improvePoints.TabIndex = 2;
             this.improvePoints.Text = "Improve Points";
             this.improvePoints.UseVisualStyleBackColor = false;
-            this.improvePoints.Click += new System.EventHandler(this.improvePoints_Click);
+            this.improvePoints.Click += new System.EventHandler(this.ImprovePointsClick);
             // 
             // RoughOutlines
             // 
@@ -178,7 +178,7 @@
             this.setSeaLevelToMedian.TabIndex = 12;
             this.setSeaLevelToMedian.Text = "Set Sea Level to Median";
             this.setSeaLevelToMedian.UseVisualStyleBackColor = false;
-            this.setSeaLevelToMedian.Click += new System.EventHandler(this.setSeaLevelToMedian_Click);
+            this.setSeaLevelToMedian.Click += new System.EventHandler(this.SetSeaLevelToMedianClick);
             // 
             // invertedCone
             // 
@@ -193,7 +193,7 @@
             this.invertedCone.TabIndex = 11;
             this.invertedCone.Text = "+ Inverted Cone";
             this.invertedCone.UseVisualStyleBackColor = false;
-            this.invertedCone.Click += new System.EventHandler(this.invertedCone_Click);
+            this.invertedCone.Click += new System.EventHandler(this.InvertedConeClick);
             // 
             // cone
             // 
@@ -208,7 +208,7 @@
             this.cone.TabIndex = 10;
             this.cone.Text = "+ Cone";
             this.cone.UseVisualStyleBackColor = false;
-            this.cone.Click += new System.EventHandler(this.cone_Click);
+            this.cone.Click += new System.EventHandler(this.ConeClick);
             // 
             // normalizeHeightmap
             // 
@@ -223,7 +223,7 @@
             this.normalizeHeightmap.TabIndex = 9;
             this.normalizeHeightmap.Text = "Normalize Heightmap";
             this.normalizeHeightmap.UseVisualStyleBackColor = false;
-            this.normalizeHeightmap.Click += new System.EventHandler(this.normalizeHeightmap_Click);
+            this.normalizeHeightmap.Click += new System.EventHandler(this.NormalizeHeightmapClick);
             // 
             // relax
             // 
@@ -238,7 +238,7 @@
             this.relax.TabIndex = 8;
             this.relax.Text = "Relax";
             this.relax.UseVisualStyleBackColor = false;
-            this.relax.Click += new System.EventHandler(this.relax_Click);
+            this.relax.Click += new System.EventHandler(this.RelaxClick);
             // 
             // fiveBlobs
             // 
@@ -253,7 +253,7 @@
             this.fiveBlobs.TabIndex = 7;
             this.fiveBlobs.Text = "+ Five Blobs";
             this.fiveBlobs.UseVisualStyleBackColor = false;
-            this.fiveBlobs.Click += new System.EventHandler(this.fiveBlobs_Click);
+            this.fiveBlobs.Click += new System.EventHandler(this.FiveBlobsClick);
             // 
             // roundHills
             // 
@@ -268,7 +268,7 @@
             this.roundHills.TabIndex = 6;
             this.roundHills.Text = "Round Hills";
             this.roundHills.UseVisualStyleBackColor = false;
-            this.roundHills.Click += new System.EventHandler(this.roundHills_Click);
+            this.roundHills.Click += new System.EventHandler(this.RoundHillsClick);
             // 
             // randomSlope
             // 
@@ -283,7 +283,7 @@
             this.randomSlope.TabIndex = 5;
             this.randomSlope.Text = "+ Random Slope";
             this.randomSlope.UseVisualStyleBackColor = false;
-            this.randomSlope.Click += new System.EventHandler(this.randomSlope_Click);
+            this.randomSlope.Click += new System.EventHandler(this.RandomSlopeClick);
             // 
             // reset
             // 
@@ -297,7 +297,7 @@
             this.reset.TabIndex = 4;
             this.reset.Text = "Reset";
             this.reset.UseVisualStyleBackColor = false;
-            this.reset.Click += new System.EventHandler(this.reset_Click);
+            this.reset.Click += new System.EventHandler(this.ResetClick);
             // 
             // Erosion
             // 
@@ -325,7 +325,7 @@
             this.showErosionRate.TabIndex = 9;
             this.showErosionRate.Text = "Show Erosion Rate";
             this.showErosionRate.UseVisualStyleBackColor = false;
-            this.showErosionRate.Click += new System.EventHandler(this.showErosionRate_Click);
+            this.showErosionRate.Click += new System.EventHandler(this.ShowErosionRateClick);
             // 
             // cleanCoastlines
             // 
@@ -339,7 +339,7 @@
             this.cleanCoastlines.TabIndex = 8;
             this.cleanCoastlines.Text = "Clean Coastlines";
             this.cleanCoastlines.UseVisualStyleBackColor = false;
-            this.cleanCoastlines.Click += new System.EventHandler(this.cleanCoastlines_Click);
+            this.cleanCoastlines.Click += new System.EventHandler(this.CleanCoastlinesClick);
             // 
             // erodeSeaLeveltoMedian
             // 
@@ -353,7 +353,7 @@
             this.erodeSeaLeveltoMedian.TabIndex = 7;
             this.erodeSeaLeveltoMedian.Text = "Set Sea Level to Median";
             this.erodeSeaLeveltoMedian.UseVisualStyleBackColor = false;
-            this.erodeSeaLeveltoMedian.Click += new System.EventHandler(this.erodeSeaLeveltoMedian_Click);
+            this.erodeSeaLeveltoMedian.Click += new System.EventHandler(this.ErodeSeaLeveltoMedianClick);
             // 
             // erode
             // 
@@ -367,7 +367,7 @@
             this.erode.TabIndex = 6;
             this.erode.Text = "Erode";
             this.erode.UseVisualStyleBackColor = false;
-            this.erode.Click += new System.EventHandler(this.erode_Click);
+            this.erode.Click += new System.EventHandler(this.ErodeClick);
             // 
             // erosionGenerateRandomHeightMap
             // 
@@ -381,7 +381,7 @@
             this.erosionGenerateRandomHeightMap.TabIndex = 5;
             this.erosionGenerateRandomHeightMap.Text = "Generate Random Heightmap";
             this.erosionGenerateRandomHeightMap.UseVisualStyleBackColor = false;
-            this.erosionGenerateRandomHeightMap.Click += new System.EventHandler(this.erodeGenerateRandomHeightMap_Click);
+            this.erosionGenerateRandomHeightMap.Click += new System.EventHandler(this.ErodeGenerateRandomHeightMapClick);
             // 
             // renderingTerrain
             // 
@@ -410,7 +410,7 @@
             this.renderingHideHeightmap.TabIndex = 15;
             this.renderingHideHeightmap.Text = "Hide Heightmap";
             this.renderingHideHeightmap.UseVisualStyleBackColor = false;
-            this.renderingHideHeightmap.Click += new System.EventHandler(this.renderingHideHeightmap_Click);
+            this.renderingHideHeightmap.Click += new System.EventHandler(this.RenderingHideHeightmapClick);
             // 
             // renderingShowSlopeShading
             // 
@@ -425,7 +425,7 @@
             this.renderingShowSlopeShading.TabIndex = 14;
             this.renderingShowSlopeShading.Text = "Show Slope Shading";
             this.renderingShowSlopeShading.UseVisualStyleBackColor = false;
-            this.renderingShowSlopeShading.Click += new System.EventHandler(this.renderingShowSlopeShading_Click);
+            this.renderingShowSlopeShading.Click += new System.EventHandler(this.RenderingShowSlopeShadingClick);
             // 
             // renderingShowRivers
             // 
@@ -440,7 +440,7 @@
             this.renderingShowRivers.TabIndex = 13;
             this.renderingShowRivers.Text = "Show Rivers";
             this.renderingShowRivers.UseVisualStyleBackColor = false;
-            this.renderingShowRivers.Click += new System.EventHandler(this.renderingShowRivers_Click);
+            this.renderingShowRivers.Click += new System.EventHandler(this.RenderingShowRiversClick);
             // 
             // renderingShowCoastline
             // 
@@ -455,7 +455,7 @@
             this.renderingShowCoastline.TabIndex = 12;
             this.renderingShowCoastline.Text = "Show Coastline";
             this.renderingShowCoastline.UseVisualStyleBackColor = false;
-            this.renderingShowCoastline.Click += new System.EventHandler(this.renderingShowCoastline_Click);
+            this.renderingShowCoastline.Click += new System.EventHandler(this.RenderingShowCoastlineClick);
             // 
             // renderingGenerateRandomHeightmap
             // 
@@ -469,7 +469,7 @@
             this.renderingGenerateRandomHeightmap.TabIndex = 11;
             this.renderingGenerateRandomHeightmap.Text = "Generate Random Heightmap";
             this.renderingGenerateRandomHeightmap.UseVisualStyleBackColor = false;
-            this.renderingGenerateRandomHeightmap.Click += new System.EventHandler(this.renderingGenerateRandomHeightmap_Click);
+            this.renderingGenerateRandomHeightmap.Click += new System.EventHandler(this.RenderingGenerateRandomHeightmapClick);
             // 
             // CitiesBorders
             // 
@@ -496,7 +496,7 @@
             this.showTerritories.TabIndex = 14;
             this.showTerritories.Text = "Show Territories";
             this.showTerritories.UseVisualStyleBackColor = false;
-            this.showTerritories.Click += new System.EventHandler(this.showTerritories_Click);
+            this.showTerritories.Click += new System.EventHandler(this.ShowTerritoriesClick);
             // 
             // cityAddNew
             // 
@@ -511,7 +511,7 @@
             this.cityAddNew.TabIndex = 13;
             this.cityAddNew.Text = "Add New City";
             this.cityAddNew.UseVisualStyleBackColor = false;
-            this.cityAddNew.Click += new System.EventHandler(this.cityAddNew_Click);
+            this.cityAddNew.Click += new System.EventHandler(this.CityAddNewClick);
             // 
             // citiesGenerateRandomHeightmap
             // 
@@ -525,7 +525,7 @@
             this.citiesGenerateRandomHeightmap.TabIndex = 12;
             this.citiesGenerateRandomHeightmap.Text = "Generate Random Heightmap";
             this.citiesGenerateRandomHeightmap.UseVisualStyleBackColor = false;
-            this.citiesGenerateRandomHeightmap.Click += new System.EventHandler(this.citiesGenerateRandomHeightmap_Click);
+            this.citiesGenerateRandomHeightmap.Click += new System.EventHandler(this.CitiesGenerateRandomHeightmapClick);
             // 
             // PlacingLabels
             // 
@@ -549,7 +549,7 @@
             this.genHighResolutionMap.TabIndex = 13;
             this.genHighResolutionMap.Text = "Generate High Resolution Map";
             this.genHighResolutionMap.UseVisualStyleBackColor = false;
-            this.genHighResolutionMap.Click += new System.EventHandler(this.genHighResolutionMap_Click);
+            this.genHighResolutionMap.Click += new System.EventHandler(this.GenHighResolutionMapClick);
             // 
             // seedStepper
             // 
@@ -568,7 +568,7 @@
             0,
             0,
             0});
-            this.seedStepper.KeyDown += new System.Windows.Forms.KeyEventHandler(this.numericUpDown1_KeyDown);
+            this.seedStepper.KeyDown += new System.Windows.Forms.KeyEventHandler(this.NumericUpDown1KeyDown);
             // 
             // seedLabel
             // 
@@ -600,7 +600,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FantasyWorldGeneratorForm";
             this.Text = "Fantasy World Generator";
-            this.Load += new System.EventHandler(this.FantasyWorldGeneratorForm_Load);
+            this.Load += new System.EventHandler(this.FantasyWorldGeneratorFormLoad);
             this.tabControl1.ResumeLayout(false);
             this.Grids.ResumeLayout(false);
             this.RoughOutlines.ResumeLayout(false);

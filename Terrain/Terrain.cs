@@ -344,7 +344,7 @@ namespace TerrainGenerator
             return new Point(scale * xOut, scale * yOut);
         }
 
-        public double[] _randomdoubles(int scale)
+        public double[] RandomDoubles(int scale)
         {
             var vector = RandomVector(scale);
             return new[] { (double)vector.X, (double)vector.Y };

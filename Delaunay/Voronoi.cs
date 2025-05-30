@@ -237,9 +237,9 @@ namespace Delaunay
 
             RectangleF dataBounds = _sites.GetSitesBounds();
 
-            int sqrt_nsites = (int)(Math.Sqrt(_sites.Length + 4));
-            HalfedgePriorityQueue heap = new HalfedgePriorityQueue(dataBounds.Y, dataBounds.Height, sqrt_nsites);
-            EdgeList edgeList = new EdgeList(dataBounds.X, dataBounds.Width, sqrt_nsites);
+            int sqrtNsites = (int)(Math.Sqrt(_sites.Length + 4));
+            HalfedgePriorityQueue heap = new HalfedgePriorityQueue(dataBounds.Y, dataBounds.Height, sqrtNsites);
+            EdgeList edgeList = new EdgeList(dataBounds.X, dataBounds.Width, sqrtNsites);
             List<Halfedge> halfEdges = new List<Halfedge>();
             List<Vertex> vertices = new List<Vertex>();
 

@@ -20,7 +20,7 @@ namespace WorldMap
             paintPanel.CreateTerrain((int)seedStepper.Value);
         }
         
-        private void FantasyWorldGeneratorForm_Load(object sender, EventArgs e)
+        private void FantasyWorldGeneratorFormLoad(object sender, EventArgs e)
         {
             paintPanel.Load();
         }
@@ -33,7 +33,7 @@ namespace WorldMap
             }
         }
 
-        private async void generateRandomPoints_Click(object sender, EventArgs e)
+        private async void GenerateRandomPointsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -48,7 +48,7 @@ namespace WorldMap
             });
         }
 
-        private async void improvePoints_Click(object sender, EventArgs e)
+        private async void ImprovePointsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -64,7 +64,7 @@ namespace WorldMap
             });
         }
 
-        private async void showOriginalPoints_Click(object sender, EventArgs e)
+        private async void ShowOriginalPointsClick(object sender, EventArgs e)
         {
             var originalText = "Show Original Points";
             var button = (Button)sender;
@@ -98,7 +98,7 @@ namespace WorldMap
             }
         }
 
-        private async void reset_Click(object sender, EventArgs e)
+        private async void ResetClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -115,7 +115,7 @@ namespace WorldMap
             });
         }
 
-        private async void randomSlope_Click(object sender, EventArgs e)
+        private async void RandomSlopeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -136,7 +136,7 @@ namespace WorldMap
             });
         }
 
-        private async void cone_Click(object sender, EventArgs e)
+        private async void ConeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -156,7 +156,7 @@ namespace WorldMap
             });
         }
 
-        private async void invertedCone_Click(object sender, EventArgs e)
+        private async void InvertedConeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -176,7 +176,7 @@ namespace WorldMap
             });
         }
 
-        private async void fiveBlobs_Click(object sender, EventArgs e)
+        private async void FiveBlobsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -196,7 +196,7 @@ namespace WorldMap
             });
         }
 
-        private async void normalizeHeightmap_Click(object sender, EventArgs e)
+        private async void NormalizeHeightmapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -211,7 +211,7 @@ namespace WorldMap
             });
         }
 
-        private async void roundHills_Click(object sender, EventArgs e)
+        private async void RoundHillsClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -226,7 +226,7 @@ namespace WorldMap
             });
         }
 
-        private async void relax_Click(object sender, EventArgs e)
+        private async void RelaxClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -241,7 +241,7 @@ namespace WorldMap
             });
         }
 
-        private async void setSeaLevelToMedian_Click(object sender, EventArgs e)
+        private async void SetSeaLevelToMedianClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -256,7 +256,7 @@ namespace WorldMap
             });
         }
 
-        private async void erodeGenerateRandomHeightMap_Click(object sender, EventArgs e)
+        private async void ErodeGenerateRandomHeightMapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -278,7 +278,7 @@ namespace WorldMap
             });
         }
 
-        private async void erode_Click(object sender, EventArgs e)
+        private async void ErodeClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -301,7 +301,7 @@ namespace WorldMap
             });
         }
 
-        private async void erodeSeaLeveltoMedian_Click(object sender, EventArgs e)
+        private async void ErodeSeaLeveltoMedianClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -316,7 +316,7 @@ namespace WorldMap
             });
         }
 
-        private async void cleanCoastlines_Click(object sender, EventArgs e)
+        private async void CleanCoastlinesClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -337,7 +337,7 @@ namespace WorldMap
             });
         }
 
-        private void showErosionRate_Click(object sender, EventArgs e)
+        private void ShowErosionRateClick(object sender, EventArgs e)
         {
             var originalText = "Show Erosion Rate";
             if (((Button)sender).Text == originalText)
@@ -352,7 +352,7 @@ namespace WorldMap
             }
         }
 
-        private void physRender(Button sender, string showText, string hideText, int drawCall)
+        private void PhysRender(Button sender, string showText, string hideText, int drawCall)
         {
             var alteredDrawQueue = paintPanel.DrawQueue.ToList();
             alteredDrawQueue.Remove(drawCall);
@@ -368,7 +368,7 @@ namespace WorldMap
             paintPanel.DrawQueue = alteredDrawQueue.OrderBy(o => o).ToArray();
         }
 
-        private async void renderingGenerateRandomHeightmap_Click(object sender, EventArgs e)
+        private async void RenderingGenerateRandomHeightmapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -393,27 +393,27 @@ namespace WorldMap
             });
         }
         
-        private void renderingShowCoastline_Click(object sender, EventArgs e)
+        private void RenderingShowCoastlineClick(object sender, EventArgs e)
         {
-            physRender((Button)sender, "Show Coastline", "Hide Coastline", (int)DrawPanel.Visualize.LayerRenderingShowCoastline);
+            PhysRender((Button)sender, "Show Coastline", "Hide Coastline", (int)DrawPanel.Visualize.LayerRenderingShowCoastline);
         }
         
-        private void renderingShowRivers_Click(object sender, EventArgs e)
+        private void RenderingShowRiversClick(object sender, EventArgs e)
         {
-            physRender((Button)sender, "Show Rivers", "Hide Rivers", (int)DrawPanel.Visualize.LayerRenderingShowRivers);
+            PhysRender((Button)sender, "Show Rivers", "Hide Rivers", (int)DrawPanel.Visualize.LayerRenderingShowRivers);
         }
         
-        private void renderingShowSlopeShading_Click(object sender, EventArgs e)
+        private void RenderingShowSlopeShadingClick(object sender, EventArgs e)
         {
-            physRender((Button)sender, "Show Slope Shading", "Hide Slope Shading", (int)DrawPanel.Visualize.LayerRenderingShowSlopeShading);
+            PhysRender((Button)sender, "Show Slope Shading", "Hide Slope Shading", (int)DrawPanel.Visualize.LayerRenderingShowSlopeShading);
         }
         
-        private void renderingHideHeightmap_Click(object sender, EventArgs e)
+        private void RenderingHideHeightmapClick(object sender, EventArgs e)
         {
-            physRender((Button)sender, "Show Heightmap", "Hide Heightmap", (int)DrawPanel.Visualize.LayerRenderingGenerateRandomHeightmap);
+            PhysRender((Button)sender, "Show Heightmap", "Hide Heightmap", (int)DrawPanel.Visualize.LayerRenderingGenerateRandomHeightmap);
         }
         
-        private async void citiesGenerateRandomHeightmap_Click(object sender, EventArgs e)
+        private async void CitiesGenerateRandomHeightmapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -441,7 +441,7 @@ namespace WorldMap
             });
         }
         
-        private async void cityAddNew_Click(object sender, EventArgs e)
+        private async void CityAddNewClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -506,7 +506,7 @@ namespace WorldMap
             });
         }
         
-        private async void showTerritories_Click(object sender, EventArgs e)
+        private async void ShowTerritoriesClick(object sender, EventArgs e)
         {
             var originalText = "Show Territories";
             var button = (Button)sender;
@@ -523,7 +523,7 @@ namespace WorldMap
             }
         }
         
-        private async void genHighResolutionMap_Click(object sender, EventArgs e)
+        private async void GenHighResolutionMapClick(object sender, EventArgs e)
         {
             await ExecuteGenerationAsync(async (token) =>
             {
@@ -608,7 +608,7 @@ namespace WorldMap
             }
         }
 
-        private void numericUpDown1_KeyDown(object sender, KeyEventArgs e)
+        private void NumericUpDown1KeyDown(object sender, KeyEventArgs e)
         {
             var seed = (int)seedStepper.Value;
             seed = seed < 0 ? -seed : seed;

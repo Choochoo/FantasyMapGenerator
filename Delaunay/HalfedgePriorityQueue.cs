@@ -14,11 +14,11 @@ namespace Delaunay
         private float _ymin;
         private float _deltay;
 
-        public HalfedgePriorityQueue(float ymin, float deltay, int sqrt_nsites)
+        public HalfedgePriorityQueue(float ymin, float deltay, int sqrtNsites)
         {
             _ymin = ymin;
             _deltay = deltay;
-            _hashsize = 4 * sqrt_nsites;
+            _hashsize = 4 * sqrtNsites;
             Init();
         }
 

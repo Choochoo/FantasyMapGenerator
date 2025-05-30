@@ -51,11 +51,11 @@ namespace Delaunay
             _hash = null;
         }
 
-        public EdgeList(float xmin, float deltax, int sqrt_nsites)
+        public EdgeList(float xmin, float deltaX, int sqrtNsites)
         {
             _xmin = xmin;
-            _deltax = deltax;
-            _hashsize = 2 * sqrt_nsites;
+            _deltax = deltaX;
+            _hashsize = 2 * sqrtNsites;
 
             int i;
             _hash = new List<Halfedge>(_hashsize);
