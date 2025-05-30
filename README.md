@@ -15,7 +15,7 @@ Fantasy Map Generator is a C# application that procedurally generates detailed f
 ## Installation
 1. Clone this repository:
    ```sh
-   git clone https://github.com/yourusername/FantasyMapGenerator.git
+   git clone https://github.com/Choochoo/FantasyMapGenerator.git
    ```
 2. Open the solution in Visual Studio 2022 or later.
 3. Restore NuGet packages and build the solution.
@@ -28,34 +28,34 @@ Fantasy Map Generator is a C# application that procedurally generates detailed f
 Below is a step-by-step visual guide to the map generation process:
 
 ### 1. Random Points (256 points)
-![Random Points](images/randompoints.png)
+![Random Points](FantasyMapGenerator/images/randompoints.png)
 
 ### 2. Converted to Voronoi Points (256 points)
-![Voronoi Points](images/voronoipoints.png)
+![Voronoi Points](FantasyMapGenerator/images/voronoipoints.png)
 
 ### 3. Generated Mesh Outline (4096 points)
-![Mesh Outline](images/generatedmesh.png)
+![Mesh Outline](FantasyMapGenerator/images/generatedmesh.png)
 
 ### 4. Mesh with Slope (4096 points)
-![Mesh Slope](images/meshslope.png)
+![Mesh Slope](FantasyMapGenerator/images/meshslope.png)
 
 ### 5. Coastline Based on Heights (4096 points)
-![Coastline by Height](images/normalizeheights.png)
+![Coastline by Height](FantasyMapGenerator/images/normalizeheights.png)
 
 ### 6. Erosion Applied (4096 points)
-![Erosion](images/rivermountsinscoasts.png)
+![Erosion](FantasyMapGenerator/images/rivermountsinscoasts.png)
 
 ### 7. Rivers, Mountains, and Coasts (4096 points)
-![Rivers, Mountains, and Coasts](images/rivermountsinscoasts.png)
+![Rivers, Mountains, and Coasts](FantasyMapGenerator/images/rivermountsinscoasts.png)
 
 ### 8. Cities with Red Region Borders (4096 points)
-![Cities and Regions](images/citiesredregion.png)
+![Cities and Regions](FantasyMapGenerator/images/citiesredregion.png)
 
 ### 9. Colored Regions with Cities as Dots (4096 points)
-![Colored Regions](images/coloredregionswithdots.png)
+![Colored Regions](FantasyMapGenerator/images/coloredregionswithdots.png)
 
 ### 10. Final Fantasy Map Result (16384 points)
-![Final Result](images/finalresults.png)
+![Final Result](FantasyMapGenerator/images/finalresults.png)
 
 ## Credits
 - Terrain generation by [mewo2/terrain](https://github.com/mewo2/terrain)
